@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +34,7 @@
             height: 100vh;
             overflow: hidden;
         }
-
+        
         .zoom-info {
             position: absolute;
             bottom: 16px;
@@ -61,7 +60,7 @@
             background: white;
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
             height: calc(100vh - 48px);
@@ -71,7 +70,7 @@
             background: white;
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             overflow: auto;
             position: relative;
             transition: all 0.3s ease;
@@ -102,11 +101,9 @@
             line-height: 1.5;
             background: #fafafa;
             transition: border-color 0.3s ease;
-            box-sizing: border-box;
-            /* Ensures padding is included in width */
+            box-sizing: border-box; /* Ensures padding is included in width */
             white-space: pre;
-            overflow-x: auto;
-            /* Allow horizontal scrolling */
+            overflow-x: auto; /* Allow horizontal scrolling */
         }
 
         textarea:focus {
@@ -149,7 +146,7 @@
         button:hover {
             background-color: var(--button-hover);
             transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         button.secondary {
@@ -159,7 +156,7 @@
         button.quick-export {
             background-color: var(--quick-export-color);
         }
-
+        
         button.quick-export:hover {
             background-color: var(--quick-export-hover);
         }
@@ -202,13 +199,8 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .error-message {
@@ -251,7 +243,7 @@
             right: 16px;
             z-index: 1001;
         }
-
+        
         .control-group {
             display: flex;
             flex-direction: row;
@@ -272,11 +264,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             font-size: 18px;
             margin: 0;
         }
-
+        
         /* For better visibility */
         .zoom-control:hover {
             background-color: var(--button-hover);
@@ -292,29 +284,25 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .mermaid .node rect,
-        .mermaid .node circle,
-        .mermaid .node ellipse,
-        .mermaid .node polygon,
-        .mermaid .node path {
+        .mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon, .mermaid .node path {
             fill: var(--node-color) !important;
             stroke: var(--node-border) !important;
             stroke-width: 2px !important;
             rx: 8px !important;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
 
         .mermaid .edgeLabel {
             background: white !important;
             padding: 4px 8px !important;
             border-radius: 4px !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
             font-size: 14px !important;
             min-width: 40px !important;
             text-align: center !important;
         }
-
+        
         .mermaid .edgeLabel div {
             display: flex !important;
             justify-content: center !important;
@@ -328,45 +316,44 @@
             fill: var(--edge-color) !important;
             stroke: var(--edge-color) !important;
         }
-
+        
         .mermaid .edgePath .path {
             stroke: var(--edge-color) !important;
             stroke-width: 2px !important;
         }
-
+        
         /* Quality settings section */
         .quality-settings {
             border-top: 1px solid #e0e0e0;
             padding-top: 16px;
             margin-top: 16px;
         }
-
+        
         .settings-info {
             font-size: 14px;
             color: #666;
             margin-bottom: 12px;
             line-height: 1.4;
         }
-
+        
         .settings-row {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
-
+        
         .settings-row label {
             flex: 1;
             margin-right: 10px;
         }
-
-        .settings-row input,
-        .settings-row select {
+        
+        .settings-row input, .settings-row select {
             width: 100px;
             padding: 8px;
             border: 1px solid #e0e0e0;
             border-radius: 4px;
         }
-
+        
         /* Status indicator */
         .status-indicator {
             padding: 8px 12px;
@@ -379,12 +366,12 @@
             margin-top: 8px;
             display: none;
         }
-
+        
         .status-indicator.success {
             background: #e3fcef;
             color: #0ca678;
         }
-
+        
         /* Tooltip styles */
         .tooltip {
             position: relative;
@@ -392,7 +379,7 @@
             margin-left: 8px;
             cursor: help;
         }
-
+        
         .tooltip .tooltip-text {
             visibility: hidden;
             width: 200px;
@@ -411,12 +398,12 @@
             font-size: 12px;
             pointer-events: none;
         }
-
+        
         .tooltip:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
         }
-
+        
         /* Download format choice */
         .download-options {
             display: grid;
@@ -424,7 +411,7 @@
             gap: 10px;
             margin-top: 16px;
         }
-
+        
         .download-option {
             text-align: center;
             padding: 12px;
@@ -433,27 +420,27 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-
+        
         .download-option:hover {
             border-color: var(--secondary-color);
             background-color: #f0f9ff;
         }
-
+        
         .download-option.active {
             border-color: var(--secondary-color);
             background-color: #e3f2fd;
         }
-
+        
         .download-option h4 {
             margin: 8px 0;
         }
-
+        
         .download-option p {
             font-size: 12px;
             color: #666;
             margin: 0;
         }
-
+        
         /* File size indicator */
         .file-size {
             font-size: 12px;
@@ -461,29 +448,29 @@
             margin-top: 8px;
             text-align: right;
         }
-
+        
         /* Examples dropdown */
         .examples-dropdown {
             position: relative;
             display: inline-block;
         }
-
+        
         .examples-dropdown-content {
             display: none;
             position: absolute;
             background-color: #f9f9f9;
             min-width: 200px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             z-index: 1;
             border-radius: 8px;
             overflow: hidden;
         }
-
+        
         /* Changed from hover to class-based toggle for proper dropdown behavior */
         .examples-dropdown .examples-dropdown-content.show {
             display: block;
         }
-
+        
         .example-item {
             padding: 12px 16px;
             text-decoration: none;
@@ -492,11 +479,11 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-
+        
         .example-item:hover {
             background-color: #f1f1f1;
         }
-
+        
         /* Sidebar settings */
         .diagram-settings {
             position: absolute;
@@ -505,12 +492,12 @@
             background: white;
             padding: 16px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             z-index: 1000;
             width: 250px;
             display: none;
         }
-
+        
         /* Theme selector */
         .theme-selector {
             display: flex;
@@ -518,7 +505,7 @@
             margin-top: 12px;
             flex-wrap: wrap;
         }
-
+        
         .theme-option {
             width: 30px;
             height: 30px;
@@ -527,15 +514,15 @@
             transition: transform 0.2s;
             border: 2px solid transparent;
         }
-
+        
         .theme-option:hover {
             transform: scale(1.1);
         }
-
+        
         .theme-option.active {
             border-color: var(--primary-color);
         }
-
+        
         /* Color picker */
         .color-picker {
             display: flex;
@@ -543,17 +530,17 @@
             gap: 8px;
             margin-top: 12px;
         }
-
+        
         .color-item {
             display: flex;
             align-items: center;
         }
-
+        
         .color-item label {
             flex: 1;
             font-size: 14px;
         }
-
+        
         .color-item input[type="color"] {
             width: 30px;
             height: 30px;
@@ -564,12 +551,11 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="editor-panel">
             <div class="panel-header">
-                <h2>MermaidEase</h2>
+                <h2>Mermaid Code Editor</h2>
             </div>
             <textarea id="code" placeholder="graph TD
     A[Start] --> B{Decision}
@@ -595,15 +581,13 @@
             <div class="quality-settings">
                 <h3>Default Export Settings</h3>
                 <div class="settings-info">
-                    These settings are applied when using Quick Export. For more options, use the "More Export Options"
-                    button.
+                    These settings are applied when using Quick Export. For more options, use the "More Export Options" button.
                 </div>
                 <div class="settings-row">
                     <label for="scale-factor">Default Scale Factor:</label>
                     <input type="number" id="scale-factor" min="1" max="8" value="4" step="1">
                     <div class="tooltip">ℹ️
-                        <span class="tooltip-text">Higher values create larger, more detailed images but increase file
-                            size</span>
+                        <span class="tooltip-text">Higher values create larger, more detailed images but increase file size</span>
                     </div>
                 </div>
             </div>
@@ -627,8 +611,7 @@
                 <h3>Diagram Settings</h3>
                 <h4>Theme</h4>
                 <div class="theme-selector">
-                    <div class="theme-option active" style="background-color: #2c3e50;"
-                        onclick="changeTheme('default')"></div>
+                    <div class="theme-option active" style="background-color: #2c3e50;" onclick="changeTheme('default')"></div>
                     <div class="theme-option" style="background-color: #3498db;" onclick="changeTheme('blue')"></div>
                     <div class="theme-option" style="background-color: #e74c3c;" onclick="changeTheme('red')"></div>
                     <div class="theme-option" style="background-color: #2ecc71;" onclick="changeTheme('green')"></div>
@@ -654,8 +637,17 @@
                         <input type="color" id="textColor" value="#2c3e50" onchange="updateColors()">
                     </div>
                 </div>
-                <button class="secondary" style="margin-top: 16px; width: 100%;" onclick="renderDiagram()">Apply
-                    Changes</button>
+                <h4>Line Style</h4>
+                <div class="settings-row">
+                    <label for="line-style">Arrow Style:</label>
+                    <select id="line-style" onchange="updateLineStyle()">
+                        <option value="basis">Curved</option>
+                        <option value="linear">Straight</option>
+                        <option value="step">Step</option>
+                        <option value="monotoneX">Smooth</option>
+                    </select>
+                </div>
+                <button class="secondary" style="margin-top: 16px; width: 100%;" onclick="renderDiagram()">Apply Changes</button>
             </div>
             <div class="loading-overlay" id="loadingOverlay">
                 <div class="spinner"></div>
@@ -671,10 +663,8 @@
     </div>
 
     <!-- Download modal -->
-    <div id="downloadModal"
-        style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-        <div
-            style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+    <div id="downloadModal" style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
             <h3 style="margin-top: 0;">Download Options</h3>
             <p>Choose your preferred format:</p>
             <div class="download-options">
@@ -693,8 +683,7 @@
             </div>
             <div class="file-size" id="estimatedFileSize">Estimated file size: ~50KB</div>
             <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <button class="secondary"
-                    onclick="document.getElementById('downloadModal').style.display='none'">Cancel</button>
+                <button class="secondary" onclick="document.getElementById('downloadModal').style.display='none'">Cancel</button>
                 <button onclick="downloadSelected()">Download</button>
             </div>
         </div>
@@ -727,7 +716,7 @@
             securityLevel: 'loose',
             logLevel: 'error',
             // Increased timeouts for complex diagrams
-            parseError: function (err, hash) {
+            parseError: function(err, hash) {
                 showDetailedError(err);
             }
         });
@@ -740,26 +729,26 @@
         let isDragging = false;
         let lastMousePosition = { x: 0, y: 0 };
         let currentTheme = 'default';
-
+        
         // Toggle examples dropdown
         function toggleExamplesDropdown() {
             const dropdown = document.getElementById('examplesDropdownContent');
             dropdown.classList.toggle('show');
-
+            
             // Close dropdown when clicking elsewhere
             document.addEventListener('click', function closeDropdown(e) {
                 const dropdown = document.getElementById('examplesDropdownContent');
                 const button = document.querySelector('#examplesDropdown button');
-
+                
                 if (!dropdown.contains(e.target) && e.target !== button) {
                     dropdown.classList.remove('show');
                     document.removeEventListener('click', closeDropdown);
                 }
             });
         }
-
+        
         // Fix to ensure the settings button and zoom controls don't overlap
-        window.onload = function () {
+        window.onload = function() {
             // Set the example code
             document.getElementById('code').value = `graph TD
     A[Start] --> B{Is it working?}
@@ -771,20 +760,20 @@
     F --> G{Issues?}
     G -->|Yes| D
     G -->|No| F`;
-
+            
             // Render the initial diagram
             renderDiagram();
-
+            
             // Initial file size estimate
             updateEstimatedFileSize();
-
+            
             // Add drag functionality for panning
             previewContent.addEventListener('mousedown', startDrag);
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', endDrag);
-
+            
             // Add wheel event for zooming
-            previewContent.addEventListener('wheel', function (e) {
+            previewContent.addEventListener('wheel', function(e) {
                 if (e.ctrlKey) {
                     e.preventDefault();
                     if (e.deltaY < 0) {
@@ -794,17 +783,17 @@
                     }
                 }
             });
-
+            
             // Close example dropdown when clicking outside of it
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', function(e) {
                 const dropdown = document.getElementById('examplesDropdownContent');
                 const button = document.querySelector('#examplesDropdown button');
-
+                
                 if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && e.target !== button) {
                     dropdown.classList.remove('show');
                 }
             });
-
+            
             // Add zoom info display to the preview panel
             const zoomInfo = document.createElement('div');
             zoomInfo.id = 'zoomInfo';
@@ -812,7 +801,7 @@
             zoomInfo.textContent = 'Zoom: 100%';
             document.getElementById('preview').appendChild(zoomInfo);
         };
-
+        
         // Function to handle starting drag
         function startDrag(e) {
             if (e.button === 0) { // Left mouse button
@@ -821,35 +810,35 @@
                 previewContent.style.cursor = 'grabbing';
             }
         }
-
+        
         // Function to handle dragging
         function drag(e) {
             if (!isDragging) return;
-
+            
             const dx = e.clientX - lastMousePosition.x;
             const dy = e.clientY - lastMousePosition.y;
-
+            
             panOffset.x += dx;
             panOffset.y += dy;
-
+            
             applyTransform();
-
+            
             lastMousePosition = { x: e.clientX, y: e.clientY };
         }
-
+        
         // Function to handle ending drag
         function endDrag() {
             isDragging = false;
             previewContent.style.cursor = 'default';
         }
-
+        
         // Apply transform with both zoom and pan, ensure diagram is properly visible
         function applyTransform() {
             const svg = previewContent.querySelector('svg');
             if (svg) {
                 svg.style.transform = `scale(${currentScale}) translate(${panOffset.x / currentScale}px, ${panOffset.y / currentScale}px)`;
                 svg.style.transformOrigin = 'center center';
-
+                
                 // Update zoom info if needed
                 const zoomInfo = document.getElementById('zoomInfo');
                 if (zoomInfo) {
@@ -857,7 +846,7 @@
                 }
             }
         }
-
+        
         // Update color inputs when theme changes
         function changeTheme(theme) {
             // Update active theme
@@ -865,28 +854,28 @@
                 el.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
-
+            
             // Set current theme
             currentTheme = theme;
-
+            
             // Update color inputs
             const colors = themes[theme];
             document.getElementById('nodeColor').value = colors.nodeColor;
             document.getElementById('borderColor').value = colors.borderColor;
             document.getElementById('lineColor').value = colors.lineColor;
             document.getElementById('textColor').value = colors.textColor;
-
+            
             // Apply the theme
             updateColors();
         }
-
+        
         // Reset zoom and pan
         function resetZoom() {
             currentScale = 1;
             panOffset = { x: 0, y: 0 };
             applyTransform();
         }
-
+        
         // Zoom in function
         function zoomIn() {
             if (currentScale < 5) {
@@ -894,7 +883,7 @@
                 applyTransform();
             }
         }
-
+        
         // Zoom out function
         function zoomOut() {
             if (currentScale > 0.2) {
@@ -902,7 +891,7 @@
                 applyTransform();
             }
         }
-
+        
         // Toggle fullscreen mode
         function toggleFullscreen() {
             preview.classList.toggle('preview-fullscreen');
@@ -912,7 +901,7 @@
                 document.body.style.overflow = '';
             }
         }
-
+        
         // Toggle settings panel
         function toggleSettings() {
             const settings = document.getElementById('diagramSettings');
@@ -922,20 +911,20 @@
                 settings.style.display = 'none';
             }
         }
-
+        
         // Update colors based on user selection
         function updateColors() {
             const nodeColor = document.getElementById('nodeColor').value;
             const borderColor = document.getElementById('borderColor').value;
             const lineColor = document.getElementById('lineColor').value;
             const textColor = document.getElementById('textColor').value;
-
+            
             // Update CSS variables
             document.documentElement.style.setProperty('--node-color', nodeColor);
             document.documentElement.style.setProperty('--node-border', borderColor);
             document.documentElement.style.setProperty('--edge-color', lineColor);
             document.documentElement.style.setProperty('--text-dark', textColor);
-
+            
             // Update Mermaid theme variables
             mermaid.initialize({
                 themeVariables: {
@@ -945,17 +934,32 @@
                     textColor: textColor
                 }
             });
-
+            
             // Re-render the diagram
             renderDiagram();
         }
-
+        
+        // Update line style based on user selection
+        function updateLineStyle() {
+            const lineStyle = document.getElementById('line-style').value;
+            
+            // Update Mermaid configuration
+            mermaid.initialize({
+                flowchart: {
+                    curve: lineStyle
+                }
+            });
+            
+            // Re-render the diagram
+            renderDiagram();
+        }
+        
         // Show download options modal
         function showDownloadOptions() {
             document.getElementById('downloadModal').style.display = 'block';
             updateEstimatedFileSize();
         }
-
+        
         // Select download format
         function selectDownloadOption(element, format) {
             // Update UI
@@ -963,20 +967,20 @@
                 el.classList.remove('active');
             });
             element.classList.add('active');
-
+            
             // Set format
             selectedDownloadFormat = format;
-
+            
             // Update file size estimate
             updateEstimatedFileSize();
         }
-
+        
         // Update estimated file size based on current settings
         function updateEstimatedFileSize() {
             const code = document.getElementById('code').value;
             const scaleFactor = document.getElementById('scale-factor').value;
             const format = selectedDownloadFormat;
-
+            
             // Rough file size estimates
             let estimate;
             if (format === 'svg') {
@@ -992,11 +996,11 @@
                 const complexity = code.length / 100;
                 estimate = Math.round((100 + complexity * 40) * (scaleFactor / 2));
             }
-
+            
             // Update UI
             document.getElementById('estimatedFileSize').textContent = `Estimated file size: ~${estimate}KB`;
         }
-
+        
         // Quick export SVG without showing modal
         function quickExportSVG() {
             const svg = document.querySelector('.mermaid svg');
@@ -1004,18 +1008,18 @@
                 showError("No diagram to download. Please generate a preview first.");
                 return;
             }
-
+            
             downloadSVG();
             showStatus("SVG downloaded successfully!", true);
         }
-
+        
         // Download the selected format
         function downloadSelected() {
             const format = selectedDownloadFormat;
             const scaleFactor = document.getElementById('scale-factor').value;
             // Always use best quality for explicit downloads
             const pngQuality = "1.0";
-
+            
             if (format === 'svg') {
                 downloadSVG();
             } else if (format === 'png') {
@@ -1023,11 +1027,11 @@
             } else if (format === 'png-large') {
                 downloadPNG(scaleFactor * 2, pngQuality);
             }
-
+            
             // Hide modal
             document.getElementById('downloadModal').style.display = 'none';
         }
-
+        
         // Download as SVG
         function downloadSVG() {
             const svg = document.querySelector('.mermaid svg');
@@ -1035,26 +1039,26 @@
                 showError("No diagram to download. Please generate a preview first.");
                 return;
             }
-
+            
             // Clone the SVG to avoid modifying the displayed one
             const svgClone = svg.cloneNode(true);
-
+            
             // Reset any transformations applied for zoom/pan
             svgClone.style.transform = '';
-
+            
             // Get the original viewBox values
             const originalViewBox = svg.getAttribute('viewBox');
-
+            
             // Apply styling for better export
             svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
+            
             // Ensure the full diagram is included regardless of current zoom/pan
             const bbox = svg.getBBox();
             const padding = 40;
-            svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`);
-            svgClone.setAttribute('width', bbox.width + padding * 2);
-            svgClone.setAttribute('height', bbox.height + padding * 2);
-
+            svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding*2} ${bbox.height + padding*2}`);
+            svgClone.setAttribute('width', bbox.width + padding*2);
+            svgClone.setAttribute('height', bbox.height + padding*2);
+            
             // Add any additional styles from CSS
             const mermaidStyles = getComputedStyle(svg);
             let styleString = '<style>\n';
@@ -1079,19 +1083,19 @@
                 stroke: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
             }\n`;
             styleString += '</style>';
-
+            
             // Add the style
             svgClone.innerHTML = styleString + svgClone.innerHTML;
-
+            
             // Create blob and download
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(svgClone);
-            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+            const blob = new Blob([svgString], {type: 'image/svg+xml'});
             saveAs(blob, 'mermaid-diagram.svg');
-
+            
             showStatus("SVG downloaded successfully!", true);
         }
-
+        
         // Download as PNG
         function downloadPNG(scaleFactor, quality) {
             const svg = document.querySelector('.mermaid svg');
@@ -1099,57 +1103,57 @@
                 showError("No diagram to download. Please generate a preview first.");
                 return;
             }
-
+            
             // Show loading overlay
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.style.display = 'flex';
-
+            
             // Clone the SVG to avoid modifying the displayed one
             const svgClone = svg.cloneNode(true);
-
+            
             // Remove any transformations
             svgClone.style.transform = '';
-
+            
             // Get dimensions properly from the real bounding box
             const bbox = svg.getBBox();
             const padding = 80; // Extra padding around the diagram
-
+            
             // Add padding
-            const paddedWidth = bbox.width + padding * 2;
-            const paddedHeight = bbox.height + padding * 2;
-
+            const paddedWidth = bbox.width + padding*2;
+            const paddedHeight = bbox.height + padding*2;
+            
             // Set proper viewBox and dimensions to ensure all content is visible
             svgClone.setAttribute('width', paddedWidth);
             svgClone.setAttribute('height', paddedHeight);
             svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${paddedWidth} ${paddedHeight}`);
-
+            
             // Apply styling for better export
             svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
+            
             // Create a Canvas element
             const canvas = document.createElement('canvas');
             canvas.width = paddedWidth * scaleFactor;
             canvas.height = paddedHeight * scaleFactor;
-
+            
             // Get Canvas context
             const ctx = canvas.getContext('2d');
             ctx.scale(scaleFactor, scaleFactor);
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, paddedWidth, paddedHeight);
-
+            
             // Convert SVG to string
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(svgClone);
-
+            
             // Create an Image from the SVG string
             const img = new Image();
-            img.onload = function () {
+            img.onload = function() {
                 // Draw the image onto the canvas
                 ctx.drawImage(img, 0, 0, paddedWidth, paddedHeight);
-
+                
                 // Convert canvas to PNG
                 const pngDataUrl = canvas.toDataURL('image/png', parseFloat(quality));
-
+                
                 // Create download link
                 const downloadLink = document.createElement('a');
                 downloadLink.href = pngDataUrl;
@@ -1157,19 +1161,19 @@
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
-
+                
                 // Hide loading overlay
                 loadingOverlay.style.display = 'none';
-
+                
                 showStatus("PNG downloaded successfully!", true);
             };
-
+            
             // Handle any errors in loading the image
-            img.onerror = function (error) {
+            img.onerror = function(error) {
                 loadingOverlay.style.display = 'none';
                 showError("Error generating PNG: " + error);
             };
-
+            
             // Set image source to SVG
             try {
                 img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
@@ -1178,15 +1182,15 @@
                 showError("Error processing SVG: " + error.message);
             }
         }
-
+        
         // Load example diagrams
         function loadExample(type) {
             let codeExample = '';
-
+            
             // Hide the dropdown after selecting an example
             document.getElementById('examplesDropdownContent').classList.remove('show');
-
-            switch (type) {
+            
+            switch(type) {
                 case 'flowchart':
                     codeExample = `graph TD
     A[Start] --> B{Is it working?}
@@ -1238,9 +1242,9 @@
                     break;
                 case 'entityRelationship':
                     codeExample = `erDiagram
-    CUSTOMER ||--o{ ORDER : places
-    ORDER ||--|{ LINE-ITEM : contains
-    CUSTOMER }|..|{ DELIVERY-ADDRESS : uses`;
+    CUSTOMER ||--o{ ORDER : "places"
+    ORDER ||--|{ LINE-ITEM : "contains"
+    CUSTOMER }|..|{ DELIVERY-ADDRESS : "uses"`;
                     break;
                 case 'gantt':
                     codeExample = `gantt
@@ -1272,7 +1276,7 @@
     B -->|Yes| C[Action]
     B -->|No| D[End]`;
             }
-
+            
             document.getElementById('code').value = codeExample;
             renderDiagram();
         }
@@ -1284,31 +1288,31 @@
                 showError("Please enter Mermaid code.");
                 return;
             }
-
+            
             // Clear any previous errors
             hideError();
-
+            
             try {
                 // Reset zoom and pan
                 resetZoom();
-
+                
                 // Get the Mermaid container and clear it first
                 const mermaidDiv = document.querySelector('.mermaid');
                 mermaidDiv.innerHTML = '';
-
+                
                 // Create a loading indicator
                 showStatus("Rendering diagram...");
-
+                
                 // Render the diagram with a slight delay to ensure UI updates
                 setTimeout(() => {
                     try {
                         mermaid.render('mermaid-svg', code)
                             .then(result => {
                                 mermaidDiv.innerHTML = result.svg;
-
+                                
                                 // Apply custom styling
                                 updateDiagramStyling();
-
+                                
                                 // Show success message
                                 showStatus("Diagram generated successfully!", true);
                             })
@@ -1329,27 +1333,27 @@
                 document.querySelector('.mermaid').innerHTML = '';
             }
         }
-
+        
         // Apply custom styling to the diagram
         function updateDiagramStyling() {
             const svg = document.querySelector('.mermaid svg');
             if (!svg) return;
-
+            
             // Center the diagram and adjust its size
             const bbox = svg.getBBox();
             svg.setAttribute('width', '100%');
             svg.setAttribute('height', '100%');
-
+            
             // Force a minimum size with much more padding
             const minimumWidth = 450;
             const minimumHeight = 350;
             const padding = 100; // Increased padding to ensure edge labels are visible
-            const width = Math.max(bbox.width + padding * 2, minimumWidth);
-            const height = Math.max(bbox.height + padding * 2, minimumHeight);
-
+            const width = Math.max(bbox.width + padding*2, minimumWidth);
+            const height = Math.max(bbox.height + padding*2, minimumHeight);
+            
             // Set viewBox for proper scaling with padding to ensure diagram is more visible
             svg.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`);
-
+            
             // Fix for edge labels - ensure they have enough space
             const edgeLabels = svg.querySelectorAll('.edgeLabel');
             edgeLabels.forEach(label => {
@@ -1360,7 +1364,7 @@
                     const lblBox = label.getBBox();
                     labelBackground.setAttribute('width', Math.max(40, lblBox.width + 20));
                     labelBackground.setAttribute('height', Math.max(22, lblBox.height + 10));
-
+                    
                     // Center the text
                     const textDiv = labelBackground.querySelector('div');
                     if (textDiv) {
@@ -1374,61 +1378,61 @@
                     }
                 }
             });
-
+            
             // Apply smooth transitions for zoom/pan
             svg.style.transition = 'transform 0.3s ease';
-
+            
             // Apply a slight initial zoom to make diagram more visible
             currentScale = 0.95; // Set initial scale to a reasonable value
             applyTransform();
         }
-
+        
         // Show detailed error in preview panel
         function showDetailedError(error) {
             const errorDetails = document.getElementById('renderErrorDetails');
             errorDetails.style.display = 'block';
             errorDetails.textContent = 'Mermaid syntax error: ' + error;
-
+            
             // Hide loading
             document.getElementById('loadingOverlay').style.display = 'none';
         }
-
+        
         // Show error message
         function showError(message) {
             const errorElement = document.getElementById('errorMessage');
             errorElement.textContent = message;
             errorElement.style.display = 'block';
-
+            
             // Hide after 8 seconds
             setTimeout(() => {
                 errorElement.style.display = 'none';
             }, 8000);
         }
-
+        
         // Hide error message
         function hideError() {
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('renderErrorDetails').style.display = 'none';
         }
-
+        
         // Show status message
         function showStatus(message, isSuccess = false) {
             const statusElement = document.getElementById('statusIndicator');
             statusElement.textContent = message;
             statusElement.style.display = 'block';
-
+            
             if (isSuccess) {
                 statusElement.classList.add('success');
             } else {
                 statusElement.classList.remove('success');
             }
-
+            
             // Hide after 3 seconds
             setTimeout(() => {
                 statusElement.style.display = 'none';
             }, 3000);
         }
-
+        
         // Theme definitions
         const themes = {
             default: {
@@ -1470,33 +1474,30 @@
         };
     </script>
 </body>
-
-</html> // Toggle examples dropdown
-function toggleExamplesDropdown() {
-const dropdown = document.getElementById('examplesDropdownContent');
-dropdown.classList.toggle('show');
-
-// Close dropdown when clicking elsewhere
-document.addEventListener('click', function closeDropdown(e) {
-const dropdown = document.getElementById('examplesDropdownContent');
-const button = document.querySelector('#examplesDropdown button');
-
-if (!dropdown.contains(e.target) && e.target !== button) {
-dropdown.classList.remove('show');
-document.removeEventListener('click', closeDropdown);
-}
-});
-} .error-message {
-color: #dc3545;
-padding: 12px;
-background: #ffe3e6;
-border-radius: 6px;
-margin-top: 12px;
-display: none;
-}
-<!DOCTYPE html>
+</html>        // Toggle examples dropdown
+        function toggleExamplesDropdown() {
+            const dropdown = document.getElementById('examplesDropdownContent');
+            dropdown.classList.toggle('show');
+            
+            // Close dropdown when clicking elsewhere
+            document.addEventListener('click', function closeDropdown(e) {
+                const dropdown = document.getElementById('examplesDropdownContent');
+                const button = document.querySelector('#examplesDropdown button');
+                
+                if (!dropdown.contains(e.target) && e.target !== button) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }        .error-message {
+            color: #dc3545;
+            padding: 12px;
+            background: #ffe3e6;
+            border-radius: 6px;
+            margin-top: 12px;
+            display: none;
+        }<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1529,7 +1530,7 @@ display: none;
             height: 100vh;
             overflow: hidden;
         }
-
+        
         .zoom-info {
             position: absolute;
             top: 62px;
@@ -1555,7 +1556,7 @@ display: none;
             background: white;
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
             height: calc(100vh - 48px);
@@ -1565,7 +1566,7 @@ display: none;
             background: white;
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             overflow: auto;
             position: relative;
             transition: all 0.3s ease;
@@ -1638,7 +1639,7 @@ display: none;
         button:hover {
             background-color: var(--button-hover);
             transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         button.secondary {
@@ -1683,13 +1684,8 @@ display: none;
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .error-details {
@@ -1722,8 +1718,7 @@ display: none;
             right: 16px;
             z-index: 1001;
             display: flex;
-            gap: 12px;
-            /* Increased gap to prevent overlap */
+            gap: 12px; /* Increased gap to prevent overlap */
         }
 
         .zoom-control {
@@ -1737,7 +1732,7 @@ display: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             font-size: 18px;
         }
 
@@ -1750,23 +1745,19 @@ display: none;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .mermaid .node rect,
-        .mermaid .node circle,
-        .mermaid .node ellipse,
-        .mermaid .node polygon,
-        .mermaid .node path {
+        .mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon, .mermaid .node path {
             fill: var(--node-color) !important;
             stroke: var(--node-border) !important;
             stroke-width: 2px !important;
             rx: 8px !important;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
 
         .mermaid .edgeLabel {
             background: white !important;
             padding: 4px 8px !important;
             border-radius: 4px !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
         }
 
@@ -1774,53 +1765,52 @@ display: none;
             fill: var(--edge-color) !important;
             stroke: var(--edge-color) !important;
         }
-
+        
         .mermaid .edgePath .path {
             stroke: var(--edge-color) !important;
             stroke-width: 2px !important;
         }
-
+        
         /* Quality settings section */
         .quality-settings {
             border-top: 1px solid #e0e0e0;
             padding-top: 16px;
             margin-top: 16px;
         }
-
+        
         .settings-info {
             font-size: 14px;
             color: #666;
             margin-bottom: 12px;
             line-height: 1.4;
         }
-
+        
         .quick-export {
             background-color: #27ae60;
         }
-
+        
         .quick-export:hover {
             background-color: #2ecc71;
         }
-
+        
         .settings-row {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
-
+        
         .settings-row label {
             flex: 1;
             margin-right: 10px;
         }
-
-        .settings-row input,
-        .settings-row select {
+        
+        .settings-row input, .settings-row select {
             width: 100px;
             padding: 8px;
             border: 1px solid #e0e0e0;
             border-radius: 4px;
         }
-
+        
         /* Status indicator */
         .status-indicator {
             padding: 8px 12px;
@@ -1833,12 +1823,12 @@ display: none;
             margin-top: 8px;
             display: none;
         }
-
+        
         .status-indicator.success {
             background: #e3fcef;
             color: #0ca678;
         }
-
+        
         /* Tooltip styles */
         .tooltip {
             position: relative;
@@ -1846,7 +1836,7 @@ display: none;
             margin-left: 8px;
             cursor: help;
         }
-
+        
         .tooltip .tooltip-text {
             visibility: hidden;
             width: 200px;
@@ -1865,12 +1855,12 @@ display: none;
             font-size: 12px;
             pointer-events: none;
         }
-
+        
         .tooltip:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
         }
-
+        
         /* Download format choice */
         .download-options {
             display: grid;
@@ -1878,7 +1868,7 @@ display: none;
             gap: 10px;
             margin-top: 16px;
         }
-
+        
         .download-option {
             text-align: center;
             padding: 12px;
@@ -1887,27 +1877,27 @@ display: none;
             cursor: pointer;
             transition: all 0.2s ease;
         }
-
+        
         .download-option:hover {
             border-color: var(--secondary-color);
             background-color: #f0f9ff;
         }
-
+        
         .download-option.active {
             border-color: var(--secondary-color);
             background-color: #e3f2fd;
         }
-
+        
         .download-option h4 {
             margin: 8px 0;
         }
-
+        
         .download-option p {
             font-size: 12px;
             color: #666;
             margin: 0;
         }
-
+        
         /* File size indicator */
         .file-size {
             font-size: 12px;
@@ -1915,29 +1905,29 @@ display: none;
             margin-top: 8px;
             text-align: right;
         }
-
+        
         /* Examples dropdown */
         .examples-dropdown {
             position: relative;
             display: inline-block;
         }
-
+        
         .examples-dropdown-content {
             display: none;
             position: absolute;
             background-color: #f9f9f9;
             min-width: 200px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             z-index: 1;
             border-radius: 8px;
             overflow: hidden;
         }
-
+        
         /* Changed from hover to class-based toggle for proper dropdown behavior */
         .examples-dropdown .examples-dropdown-content.show {
             display: block;
         }
-
+        
         .example-item {
             padding: 12px 16px;
             text-decoration: none;
@@ -1946,11 +1936,11 @@ display: none;
             cursor: pointer;
             transition: background-color 0.2s;
         }
-
+        
         .example-item:hover {
             background-color: #f1f1f1;
         }
-
+        
         /* Sidebar settings */
         .diagram-settings {
             position: absolute;
@@ -1959,20 +1949,19 @@ display: none;
             background: white;
             padding: 16px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             z-index: 1000;
             width: 250px;
             display: none;
         }
-
+        
         .settings-toggle {
             position: absolute;
             top: 16px;
-            right: 72px;
-            /* Adjusted position to prevent overlap */
+            right: 72px; /* Adjusted position to prevent overlap */
             z-index: 1001;
         }
-
+        
         /* Theme selector */
         .theme-selector {
             display: flex;
@@ -1980,7 +1969,7 @@ display: none;
             margin-top: 12px;
             flex-wrap: wrap;
         }
-
+        
         .theme-option {
             width: 30px;
             height: 30px;
@@ -1989,15 +1978,15 @@ display: none;
             transition: transform 0.2s;
             border: 2px solid transparent;
         }
-
+        
         .theme-option:hover {
             transform: scale(1.1);
         }
-
+        
         .theme-option.active {
             border-color: var(--primary-color);
         }
-
+        
         /* Color picker */
         .color-picker {
             display: flex;
@@ -2005,17 +1994,17 @@ display: none;
             gap: 8px;
             margin-top: 12px;
         }
-
+        
         .color-item {
             display: flex;
             align-items: center;
         }
-
+        
         .color-item label {
             flex: 1;
             font-size: 14px;
         }
-
+        
         .color-item input[type="color"] {
             width: 30px;
             height: 30px;
@@ -2026,7 +2015,6 @@ display: none;
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="editor-panel">
@@ -2057,15 +2045,13 @@ display: none;
             <div class="quality-settings">
                 <h3>Default Export Settings</h3>
                 <div class="settings-info">
-                    These settings are applied when using Quick Export. For more options, use the "Download Options"
-                    button.
+                    These settings are applied when using Quick Export. For more options, use the "Download Options" button.
                 </div>
                 <div class="settings-row">
                     <label for="scale-factor">Default Scale Factor:</label>
                     <input type="number" id="scale-factor" min="1" max="8" value="4" step="1">
                     <div class="tooltip">ℹ️
-                        <span class="tooltip-text">Higher values create larger, more detailed images but increase file
-                            size</span>
+                        <span class="tooltip-text">Higher values create larger, more detailed images but increase file size</span>
                     </div>
                 </div>
             </div>
@@ -2087,8 +2073,7 @@ display: none;
                 <h3>Diagram Settings</h3>
                 <h4>Theme</h4>
                 <div class="theme-selector">
-                    <div class="theme-option active" style="background-color: #2c3e50;"
-                        onclick="changeTheme('default')"></div>
+                    <div class="theme-option active" style="background-color: #2c3e50;" onclick="changeTheme('default')"></div>
                     <div class="theme-option" style="background-color: #3498db;" onclick="changeTheme('blue')"></div>
                     <div class="theme-option" style="background-color: #e74c3c;" onclick="changeTheme('red')"></div>
                     <div class="theme-option" style="background-color: #2ecc71;" onclick="changeTheme('green')"></div>
@@ -2114,8 +2099,7 @@ display: none;
                         <input type="color" id="textColor" value="#2c3e50" onchange="updateColors()">
                     </div>
                 </div>
-                <button class="secondary" style="margin-top: 16px; width: 100%;" onclick="renderDiagram()">Apply
-                    Changes</button>
+                <button class="secondary" style="margin-top: 16px; width: 100%;" onclick="renderDiagram()">Apply Changes</button>
             </div>
             <div class="loading-overlay" id="loadingOverlay">
                 <div class="spinner"></div>
@@ -2131,10 +2115,8 @@ display: none;
     </div>
 
     <!-- Download modal -->
-    <div id="downloadModal"
-        style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-        <div
-            style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+    <div id="downloadModal" style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
             <h3 style="margin-top: 0;">Download Options</h3>
             <p>Choose your preferred format:</p>
             <div class="download-options">
@@ -2153,8 +2135,7 @@ display: none;
             </div>
             <div class="file-size" id="estimatedFileSize">Estimated file size: ~50KB</div>
             <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <button class="secondary"
-                    onclick="document.getElementById('downloadModal').style.display='none'">Cancel</button>
+                <button class="secondary" onclick="document.getElementById('downloadModal').style.display='none'">Cancel</button>
                 <button onclick="downloadSelected()">Download</button>
             </div>
         </div>
@@ -2186,7 +2167,7 @@ display: none;
             securityLevel: 'loose',
             logLevel: 'error',
             // Increased timeouts for complex diagrams
-            parseError: function (err, hash) {
+            parseError: function(err, hash) {
                 showDetailedError(err);
             }
         });
@@ -2199,9 +2180,9 @@ display: none;
         let isDragging = false;
         let lastMousePosition = { x: 0, y: 0 };
         let currentTheme = 'default';
-
+        
         // Fix to ensure the settings button and zoom controls don't overlap
-        window.onload = function () {
+        window.onload = function() {
             // Set the example code
             document.getElementById('code').value = `graph TD
     A[Start] --> B{Is it working?}
@@ -2213,33 +2194,33 @@ display: none;
     F --> G{Issues?}
     G -->|Yes| D
     G -->|No| F`;
-
+            
             // Make sure the UI is properly arranged
             const controlsDiv = document.querySelector('.controls');
             Array.from(controlsDiv.children).forEach((button, index) => {
                 button.style.position = 'relative';
                 button.style.zIndex = 1002 + index; // Ensure proper stacking
             });
-
+            
             // Move the settings toggle button to avoid overlap
             const settingsToggle = document.querySelector('.settings-toggle');
             if (settingsToggle) {
                 settingsToggle.style.right = '72px';
             }
-
+            
             // Render the initial diagram
             renderDiagram();
-
+            
             // Initial file size estimate
             updateEstimatedFileSize();
-
+            
             // Add drag functionality for panning
             previewContent.addEventListener('mousedown', startDrag);
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', endDrag);
-
+            
             // Add wheel event for zooming
-            previewContent.addEventListener('wheel', function (e) {
+            previewContent.addEventListener('wheel', function(e) {
                 if (e.ctrlKey) {
                     e.preventDefault();
                     if (e.deltaY < 0) {
@@ -2249,17 +2230,17 @@ display: none;
                     }
                 }
             });
-
+            
             // Close example dropdown when clicking outside of it
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', function(e) {
                 const dropdown = document.getElementById('examplesDropdownContent');
                 const button = document.querySelector('#examplesDropdown button');
-
+                
                 if (dropdown.classList.contains('show') && !dropdown.contains(e.target) && e.target !== button) {
                     dropdown.classList.remove('show');
                 }
             });
-
+            
             // Add zoom info display to the preview panel
             const zoomInfo = document.createElement('div');
             zoomInfo.id = 'zoomInfo';
@@ -2267,7 +2248,7 @@ display: none;
             zoomInfo.textContent = 'Zoom: 100%';
             document.getElementById('preview').appendChild(zoomInfo);
         };
-
+        
         // Theme definitions
         const themes = {
             default: {
@@ -2307,7 +2288,7 @@ display: none;
                 textColor: '#bf360c'
             }
         };
-
+        
         // Function to handle starting drag
         function startDrag(e) {
             if (e.button === 0) { // Left mouse button
@@ -2316,35 +2297,35 @@ display: none;
                 previewContent.style.cursor = 'grabbing';
             }
         }
-
+        
         // Function to handle dragging
         function drag(e) {
             if (!isDragging) return;
-
+            
             const dx = e.clientX - lastMousePosition.x;
             const dy = e.clientY - lastMousePosition.y;
-
+            
             panOffset.x += dx;
             panOffset.y += dy;
-
+            
             applyTransform();
-
+            
             lastMousePosition = { x: e.clientX, y: e.clientY };
         }
-
+        
         // Function to handle ending drag
         function endDrag() {
             isDragging = false;
             previewContent.style.cursor = 'default';
         }
-
+        
         // Apply transform with both zoom and pan, ensure diagram is properly visible
         function applyTransform() {
             const svg = previewContent.querySelector('svg');
             if (svg) {
                 svg.style.transform = `scale(${currentScale}) translate(${panOffset.x / currentScale}px, ${panOffset.y / currentScale}px)`;
                 svg.style.transformOrigin = 'center center';
-
+                
                 // Update zoom info if needed
                 const zoomInfo = document.getElementById('zoomInfo');
                 if (zoomInfo) {
@@ -2352,7 +2333,7 @@ display: none;
                 }
             }
         }
-
+        
         // Update color inputs when theme changes
         function changeTheme(theme) {
             // Update active theme
@@ -2360,28 +2341,28 @@ display: none;
                 el.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
-
+            
             // Set current theme
             currentTheme = theme;
-
+            
             // Update color inputs
             const colors = themes[theme];
             document.getElementById('nodeColor').value = colors.nodeColor;
             document.getElementById('borderColor').value = colors.borderColor;
             document.getElementById('lineColor').value = colors.lineColor;
             document.getElementById('textColor').value = colors.textColor;
-
+            
             // Apply the theme
             updateColors();
         }
-
+        
         // Reset zoom and pan
         function resetZoom() {
             currentScale = 1;
             panOffset = { x: 0, y: 0 };
             applyTransform();
         }
-
+        
         // Zoom in function
         function zoomIn() {
             if (currentScale < 5) {
@@ -2389,7 +2370,7 @@ display: none;
                 applyTransform();
             }
         }
-
+        
         // Zoom out function
         function zoomOut() {
             if (currentScale > 0.2) {
@@ -2397,7 +2378,7 @@ display: none;
                 applyTransform();
             }
         }
-
+        
         // Toggle fullscreen mode
         function toggleFullscreen() {
             preview.classList.toggle('preview-fullscreen');
@@ -2407,7 +2388,7 @@ display: none;
                 document.body.style.overflow = '';
             }
         }
-
+        
         // Toggle settings panel
         function toggleSettings() {
             const settings = document.getElementById('diagramSettings');
@@ -2417,20 +2398,20 @@ display: none;
                 settings.style.display = 'none';
             }
         }
-
+        
         // Update colors based on user selection
         function updateColors() {
             const nodeColor = document.getElementById('nodeColor').value;
             const borderColor = document.getElementById('borderColor').value;
             const lineColor = document.getElementById('lineColor').value;
             const textColor = document.getElementById('textColor').value;
-
+            
             // Update CSS variables
             document.documentElement.style.setProperty('--node-color', nodeColor);
             document.documentElement.style.setProperty('--node-border', borderColor);
             document.documentElement.style.setProperty('--edge-color', lineColor);
             document.documentElement.style.setProperty('--text-dark', textColor);
-
+            
             // Update Mermaid theme variables
             mermaid.initialize({
                 themeVariables: {
@@ -2440,17 +2421,17 @@ display: none;
                     textColor: textColor
                 }
             });
-
+            
             // Re-render the diagram
             renderDiagram();
         }
-
+        
         // Show download options modal
         function showDownloadOptions() {
             document.getElementById('downloadModal').style.display = 'block';
             updateEstimatedFileSize();
         }
-
+        
         // Select download format
         function selectDownloadOption(element, format) {
             // Update UI
@@ -2458,20 +2439,20 @@ display: none;
                 el.classList.remove('active');
             });
             element.classList.add('active');
-
+            
             // Set format
             selectedDownloadFormat = format;
-
+            
             // Update file size estimate
             updateEstimatedFileSize();
         }
-
+        
         // Update estimated file size based on current settings
         function updateEstimatedFileSize() {
             const code = document.getElementById('code').value;
             const scaleFactor = document.getElementById('scale-factor').value;
             const format = selectedDownloadFormat;
-
+            
             // Rough file size estimates
             let estimate;
             if (format === 'svg') {
@@ -2487,11 +2468,11 @@ display: none;
                 const complexity = code.length / 100;
                 estimate = Math.round((100 + complexity * 40) * (scaleFactor / 2));
             }
-
+            
             // Update UI
             document.getElementById('estimatedFileSize').textContent = `Estimated file size: ~${estimate}KB`;
         }
-
+        
         // Quick export SVG without showing modal
         function quickExportSVG() {
             const svg = document.querySelector('.mermaid svg');
@@ -2499,18 +2480,18 @@ display: none;
                 showError("No diagram to download. Please generate a preview first.");
                 return;
             }
-
+            
             downloadSVG();
             showStatus("SVG downloaded successfully!", true);
         }
-
+        
         // Download the selected format
         function downloadSelected() {
             const format = selectedDownloadFormat;
             const scaleFactor = document.getElementById('scale-factor').value;
             // Always use best quality for explicit downloads
             const pngQuality = "1.0";
-
+            
             if (format === 'svg') {
                 downloadSVG();
             } else if (format === 'png') {
@@ -2518,11 +2499,11 @@ display: none;
             } else if (format === 'png-large') {
                 downloadPNG(scaleFactor * 2, pngQuality);
             }
-
+            
             // Hide modal
             document.getElementById('downloadModal').style.display = 'none';
         }
-
+        
         // Download as SVG
         function downloadSVG() {
             const svg = document.querySelector('.mermaid svg');
@@ -2530,13 +2511,13 @@ display: none;
                 showError("No diagram to download. Please generate a preview first.");
                 return;
             }
-
+            
             // Clone the SVG to avoid modifying the displayed one
             const svgClone = svg.cloneNode(true);
-
+            
             // Apply styling for better export
             svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
+            
             // Add any additional styles from CSS
             const mermaidStyles = getComputedStyle(svg);
             let styleString = '<style>\n';
@@ -2561,19 +2542,19 @@ display: none;
                 stroke: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
             }\n`;
             styleString += '</style>';
-
+            
             // Add the style
             svgClone.innerHTML = styleString + svgClone.innerHTML;
-
+            
             // Create blob and download
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(svgClone);
-            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+            const blob = new Blob([svgString], {type: 'image/svg+xml'});
             saveAs(blob, 'mermaid-diagram.svg');
-
+            
             showStatus("SVG downloaded successfully!", true);
         }
-
+        
         // Download as PNG
         function downloadPNG(scaleFactor, quality) {
             const svg = document.querySelector('.mermaid svg');
@@ -2581,55 +2562,55 @@ display: none;
                 showError("No diagram to download. Please generate a preview first.");
                 return;
             }
-
+            
             // Show loading overlay
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.style.display = 'flex';
-
+            
             // Clone the SVG to avoid modifying the displayed one
             const svgClone = svg.cloneNode(true);
-
+            
             // Get dimensions
             const bbox = svg.getBBox();
             const width = bbox.width;
             const height = bbox.height;
-
+            
             // Add padding
             const paddedWidth = width + 40;
             const paddedHeight = height + 40;
-
+            
             // Set viewBox and dimensions
             svgClone.setAttribute('width', paddedWidth);
             svgClone.setAttribute('height', paddedHeight);
             svgClone.setAttribute('viewBox', `${bbox.x - 20} ${bbox.y - 20} ${paddedWidth} ${paddedHeight}`);
-
+            
             // Apply styling for better export
             svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
+            
             // Create a Canvas element
             const canvas = document.createElement('canvas');
             canvas.width = paddedWidth * scaleFactor;
             canvas.height = paddedHeight * scaleFactor;
-
+            
             // Get Canvas context
             const ctx = canvas.getContext('2d');
             ctx.scale(scaleFactor, scaleFactor);
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, paddedWidth, paddedHeight);
-
+            
             // Convert SVG to string
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(svgClone);
-
+            
             // Create an Image from the SVG string
             const img = new Image();
-            img.onload = function () {
+            img.onload = function() {
                 // Draw the image onto the canvas
                 ctx.drawImage(img, 0, 0, paddedWidth, paddedHeight);
-
+                
                 // Convert canvas to PNG
                 const pngDataUrl = canvas.toDataURL('image/png', parseFloat(quality));
-
+                
                 // Create download link
                 const downloadLink = document.createElement('a');
                 downloadLink.href = pngDataUrl;
@@ -2637,25 +2618,25 @@ display: none;
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
-
+                
                 // Hide loading overlay
                 loadingOverlay.style.display = 'none';
-
+                
                 showStatus("PNG downloaded successfully!", true);
             };
-
+            
             // Set image source to SVG
             img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
         }
-
+        
         // Load example diagrams
         function loadExample(type) {
             let codeExample = '';
-
+            
             // Hide the dropdown after selecting an example
             document.getElementById('examplesDropdownContent').classList.remove('show');
-
-            switch (type) {
+            
+            switch(type) {
                 case 'flowchart':
                     codeExample = `graph TD
     A[Start] --> B{Is it working?}
@@ -2741,7 +2722,7 @@ display: none;
     B -->|Yes| C[Action]
     B -->|No| D[End]`;
             }
-
+            
             document.getElementById('code').value = codeExample;
             renderDiagram();
         }
@@ -2753,31 +2734,31 @@ display: none;
                 showError("Please enter Mermaid code.");
                 return;
             }
-
+            
             // Clear any previous errors
             hideError();
-
+            
             try {
                 // Reset zoom and pan
                 resetZoom();
-
+                
                 // Get the Mermaid container and clear it first
                 const mermaidDiv = document.querySelector('.mermaid');
                 mermaidDiv.innerHTML = '';
-
+                
                 // Create a loading indicator
                 showStatus("Rendering diagram...");
-
+                
                 // Render the diagram with a slight delay to ensure UI updates
                 setTimeout(() => {
                     try {
                         mermaid.render('mermaid-svg', code)
                             .then(result => {
                                 mermaidDiv.innerHTML = result.svg;
-
+                                
                                 // Apply custom styling
                                 updateDiagramStyling();
-
+                                
                                 // Show success message
                                 showStatus("Diagram generated successfully!", true);
                             })
@@ -2798,70 +2779,70 @@ display: none;
                 document.querySelector('.mermaid').innerHTML = '';
             }
         }
-
+        
         // Apply custom styling to the diagram
         function updateDiagramStyling() {
             const svg = document.querySelector('.mermaid svg');
             if (!svg) return;
-
+            
             // Center the diagram and adjust its size
             const bbox = svg.getBBox();
             svg.setAttribute('width', '100%');
             svg.setAttribute('height', '100%');
-
+            
             // Force a minimum size
             const minimumWidth = 400;
             const minimumHeight = 300;
             const width = Math.max(bbox.width + 40, minimumWidth);
             const height = Math.max(bbox.height + 40, minimumHeight);
-
+            
             // Set viewBox for proper scaling
             svg.setAttribute('viewBox', `${bbox.x - 20} ${bbox.y - 20} ${width} ${height}`);
-
+            
             // Apply smooth transitions for zoom/pan
             svg.style.transition = 'transform 0.3s ease';
         }
-
+        
         // Show detailed error in preview panel
         function showDetailedError(error) {
             const errorDetails = document.getElementById('renderErrorDetails');
             errorDetails.style.display = 'block';
             errorDetails.textContent = 'Mermaid syntax error: ' + error;
-
+            
             // Hide loading
             document.getElementById('loadingOverlay').style.display = 'none';
         }
-
+        
         // Show error message
         function showError(message) {
             const errorElement = document.getElementById('errorMessage');
             errorElement.textContent = message;
             errorElement.style.display = 'block';
-
+            
             // Hide after 8 seconds
             setTimeout(() => {
                 errorElement.style.display = 'none';
             }, 8000);
         }
-
+        
         // Hide error message
         function hideError() {
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('renderErrorDetails').style.display = 'none';
         }
-
+        
         // Show status message
         function showStatus(message, isSuccess = false) {
             const statusElement = document.getElementById('statusIndicator');
             statusElement.textContent = message;
             statusElement.style.display = 'block';
-
+            
             if (isSuccess) {
                 statusElement.classList.add('success');
             } else {
                 statusElement.classList.remove('success');
             }
-
+            
             // Hide after 3 seconds
             setTimeout(() => {
                 statusElement.style.display = 'none';
@@ -2869,5 +2850,4 @@ display: none;
         }
     </script>
 </body>
-
 </html>
