@@ -1,0 +1,2873 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Mermaid Diagram Generator</title>
+    <!-- Updated to latest Mermaid version -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+    <!-- Better SVG to Canvas conversion library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.10/umd.min.js"></script>
+    <!-- Added FileSaver.js for better download support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-light: #f8f9fa;
+            --text-dark: #2c3e50;
+            --node-color: #ecf0f1;
+            --node-border: #2c3e50;
+            --edge-color: #3498db;
+            --header-bg: #f1f1f1;
+            --button-hover: #34495e;
+            --quick-export-color: #27ae60;
+            --quick-export-hover: #2ecc71;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: var(--background-light);
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .zoom-info {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--text-dark);
+            z-index: 999;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            height: 100vh;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .editor-panel {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 48px);
+        }
+
+        #preview {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: auto;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 48px);
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            padding: 16px;
+            margin: 16px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            resize: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            background: #fafafa;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+            /* Ensures padding is included in width */
+            white-space: pre;
+            overflow-x: auto;
+            /* Allow horizontal scrolling */
+        }
+
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .panel-header {
+            background: var(--header-bg);
+            padding: 16px;
+            border-radius: 8px 8px 0 0;
+            margin: -24px -24px 20px -24px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .button-group {
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+
+        button.quick-export {
+            background-color: var(--quick-export-color);
+        }
+
+        button.quick-export:hover {
+            background-color: var(--quick-export-hover);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-left-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: #dc3545;
+            padding: 12px;
+            background: #ffe3e6;
+            border-radius: 6px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .error-details {
+            color: #dc3545;
+            padding: 12px;
+            margin: 16px;
+            background: #ffe3e6;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 12px;
+            max-width: 90%;
+            display: none;
+        }
+
+        .preview-fullscreen {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: white;
+            padding: 40px !important;
+        }
+
+        /* Control buttons */
+        .controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1001;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            background-color: rgba(44, 62, 80, 0.8);
+            padding: 4px;
+            border-radius: 24px;
+        }
+
+        .zoom-control {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 18px;
+            margin: 0;
+        }
+
+        /* For better visibility */
+        .zoom-control:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-1px);
+        }
+
+        .zoom-control:hover {
+            background-color: var(--button-hover);
+        }
+
+        /* Enhanced Mermaid styling */
+        .mermaid {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .mermaid .node rect,
+        .mermaid .node circle,
+        .mermaid .node ellipse,
+        .mermaid .node polygon,
+        .mermaid .node path {
+            fill: var(--node-color) !important;
+            stroke: var(--node-border) !important;
+            stroke-width: 2px !important;
+            rx: 8px !important;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .mermaid .edgeLabel {
+            background: white !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            font-size: 14px !important;
+            min-width: 40px !important;
+            text-align: center !important;
+        }
+
+        .mermaid .edgeLabel div {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 2px !important;
+        }
+
+        .mermaid .marker {
+            fill: var(--edge-color) !important;
+            stroke: var(--edge-color) !important;
+        }
+
+        .mermaid .edgePath .path {
+            stroke: var(--edge-color) !important;
+            stroke-width: 2px !important;
+        }
+
+        /* Quality settings section */
+        .quality-settings {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .settings-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .settings-row label {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .settings-row input,
+        .settings-row select {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        /* Status indicator */
+        .status-indicator {
+            padding: 8px 12px;
+            border-radius: 4px;
+            background: #e8f4fd;
+            color: var(--secondary-color);
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .status-indicator.success {
+            background: #e3fcef;
+            color: #0ca678;
+        }
+
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 8px;
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Download format choice */
+        .download-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .download-option {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .download-option:hover {
+            border-color: var(--secondary-color);
+            background-color: #f0f9ff;
+        }
+
+        .download-option.active {
+            border-color: var(--secondary-color);
+            background-color: #e3f2fd;
+        }
+
+        .download-option h4 {
+            margin: 8px 0;
+        }
+
+        .download-option p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+
+        /* File size indicator */
+        .file-size {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        /* Examples dropdown */
+        .examples-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .examples-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Changed from hover to class-based toggle for proper dropdown behavior */
+        .examples-dropdown .examples-dropdown-content.show {
+            display: block;
+        }
+
+        .example-item {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .example-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Sidebar settings */
+        .diagram-settings {
+            position: absolute;
+            top: 70px;
+            right: 16px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 250px;
+            display: none;
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .theme-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .theme-option:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary-color);
+        }
+
+        /* Color picker */
+        .color-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .color-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .color-item label {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .color-item input[type="color"] {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            background: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="editor-panel">
+            <div class="panel-header">
+                <h2>Mermaid Code Editor</h2>
+            </div>
+            <textarea id="code" placeholder="graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action]
+    B -->|No| D[End]"></textarea>
+            <div class="examples-dropdown" id="examplesDropdown">
+                <button class="secondary" onclick="toggleExamplesDropdown()">Load Example</button>
+                <div class="examples-dropdown-content" id="examplesDropdownContent">
+                    <a class="example-item" onclick="loadExample('flowchart')">Flowchart</a>
+                    <a class="example-item" onclick="loadExample('sequence')">Sequence Diagram</a>
+                    <a class="example-item" onclick="loadExample('classDiagram')">Class Diagram</a>
+                    <a class="example-item" onclick="loadExample('entityRelationship')">Entity Relationship</a>
+                    <a class="example-item" onclick="loadExample('gantt')">Gantt Chart</a>
+                    <a class="example-item" onclick="loadExample('stateDiagram')">State Diagram</a>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="renderDiagram()">Generate Preview</button>
+                <button onclick="quickExportSVG()" class="quick-export">Quick Export SVG</button>
+                <button class="secondary" onclick="showDownloadOptions()">More Export Options</button>
+            </div>
+            <!-- Simplified to avoid confusion with download options modal -->
+            <div class="quality-settings">
+                <h3>Default Export Settings</h3>
+                <div class="settings-info">
+                    These settings are applied when using Quick Export. For more options, use the "More Export Options"
+                    button.
+                </div>
+                <div class="settings-row">
+                    <label for="scale-factor">Default Scale Factor:</label>
+                    <input type="number" id="scale-factor" min="1" max="8" value="4" step="1">
+                    <div class="tooltip">ℹ️
+                        <span class="tooltip-text">Higher values create larger, more detailed images but increase file
+                            size</span>
+                    </div>
+                </div>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="status-indicator" id="statusIndicator"></div>
+        </div>
+        <div id="preview">
+            <div class="panel-header">
+                <h2>Diagram Preview</h2>
+            </div>
+            <div class="controls">
+                <div class="control-group">
+                    <button class="zoom-control" onclick="toggleFullscreen()">↔️</button>
+                    <button class="zoom-control" onclick="zoomIn()">+</button>
+                    <button class="zoom-control" onclick="zoomOut()">-</button>
+                    <button class="zoom-control" onclick="resetZoom()">↻</button>
+                    <button class="zoom-control" onclick="toggleSettings()">⚙️</button>
+                </div>
+            </div>
+            <div class="diagram-settings" id="diagramSettings">
+                <h3>Diagram Settings</h3>
+                <h4>Theme</h4>
+                <div class="theme-selector">
+                    <div class="theme-option active" style="background-color: #2c3e50;"
+                        onclick="changeTheme('default')"></div>
+                    <div class="theme-option" style="background-color: #3498db;" onclick="changeTheme('blue')"></div>
+                    <div class="theme-option" style="background-color: #e74c3c;" onclick="changeTheme('red')"></div>
+                    <div class="theme-option" style="background-color: #2ecc71;" onclick="changeTheme('green')"></div>
+                    <div class="theme-option" style="background-color: #9b59b6;" onclick="changeTheme('purple')"></div>
+                    <div class="theme-option" style="background-color: #f39c12;" onclick="changeTheme('orange')"></div>
+                </div>
+                <h4>Custom Colors</h4>
+                <div class="color-picker">
+                    <div class="color-item">
+                        <label>Node Color:</label>
+                        <input type="color" id="nodeColor" value="#ecf0f1" onchange="updateColors()">
+                    </div>
+                    <div class="color-item">
+                        <label>Border Color:</label>
+                        <input type="color" id="borderColor" value="#2c3e50" onchange="updateColors()">
+                    </div>
+                    <div class="color-item">
+                        <label>Line Color:</label>
+                        <input type="color" id="lineColor" value="#3498db" onchange="updateColors()">
+                    </div>
+                    <div class="color-item">
+                        <label>Text Color:</label>
+                        <input type="color" id="textColor" value="#2c3e50" onchange="updateColors()">
+                    </div>
+                </div>
+                <button class="secondary" style="margin-top: 16px; width: 100%;" onclick="renderDiagram()">Apply
+                    Changes</button>
+            </div>
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <span>Generating High-Resolution Image...</span>
+            </div>
+            <div class="preview-content" id="previewContent">
+                <div class="mermaid-container">
+                    <div class="mermaid"></div>
+                </div>
+                <div class="error-details" id="renderErrorDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download modal -->
+    <div id="downloadModal"
+        style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div
+            style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0;">Download Options</h3>
+            <p>Choose your preferred format:</p>
+            <div class="download-options">
+                <div class="download-option active" onclick="selectDownloadOption(this, 'svg')">
+                    <h4>SVG</h4>
+                    <p>Vector format<br>Best for scaling</p>
+                </div>
+                <div class="download-option" onclick="selectDownloadOption(this, 'png')">
+                    <h4>PNG</h4>
+                    <p>High resolution<br>For documents</p>
+                </div>
+                <div class="download-option" onclick="selectDownloadOption(this, 'png-large')">
+                    <h4>PNG (Large)</h4>
+                    <p>Extra high resolution<br>For printing</p>
+                </div>
+            </div>
+            <div class="file-size" id="estimatedFileSize">Estimated file size: ~50KB</div>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <button class="secondary"
+                    onclick="document.getElementById('downloadModal').style.display='none'">Cancel</button>
+                <button onclick="downloadSelected()">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid with better default settings
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#ecf0f1',
+                primaryBorderColor: '#2c3e50',
+                lineColor: '#3498db',
+                fontFamily: 'Segoe UI, sans-serif',
+                fontSize: '16px',
+                textColor: '#2c3e50',
+                edgeLabelBackground: '#ffffff',
+                clusterBkg: '#e0e0e0',
+                tertiaryColor: '#bdc3c7'
+            },
+            flowchart: {
+                curve: 'basis',
+                nodeSpacing: 50,
+                rankSpacing: 100,
+                diagramPadding: 30,
+                htmlLabels: true,
+                useMaxWidth: false  // Prevent auto-scaling that might cut off labels
+            },
+            securityLevel: 'loose',
+            logLevel: 'error',
+            // Increased timeouts for complex diagrams
+            parseError: function (err, hash) {
+                showDetailedError(err);
+            }
+        });
+
+        let currentScale = 1;
+        let panOffset = { x: 0, y: 0 };
+        const preview = document.getElementById('preview');
+        const previewContent = document.getElementById('previewContent');
+        let selectedDownloadFormat = 'svg';
+        let isDragging = false;
+        let lastMousePosition = { x: 0, y: 0 };
+        let currentTheme = 'default';
+
+        // Toggle examples dropdown
+        function toggleExamplesDropdown() {
+            const dropdown = document.getElementById('examplesDropdownContent');
+            dropdown.classList.toggle('show');
+
+            // Close dropdown when clicking elsewhere
+            document.addEventListener('click', function closeDropdown(e) {
+                const dropdown = document.getElementById('examplesDropdownContent');
+                const button = document.querySelector('#examplesDropdown button');
+
+                if (!dropdown.contains(e.target) && e.target !== button) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+
+        // Fix to ensure the settings button and zoom controls don't overlap
+        window.onload = function () {
+            // Set the example code
+            document.getElementById('code').value = `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[Deploy to Production]
+    E --> F[Monitor]
+    F --> G{Issues?}
+    G -->|Yes| D
+    G -->|No| F`;
+
+            // Render the initial diagram
+            renderDiagram();
+
+            // Initial file size estimate
+            updateEstimatedFileSize();
+
+            // Add drag functionality for panning
+            previewContent.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+
+            // Add wheel event for zooming
+            previewContent.addEventListener('wheel', function (e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    if (e.deltaY < 0) {
+                        zoomIn();
+                    } else {
+                        zoomOut();
+                    }
+                }
+            });
+
+            // Close example dropdown when clicking outside of it
+            document.addEventListener('click', function (e) {
+                const dropdown = document.getElementById('examplesDropdownContent');
+                const button = document.querySelector('#examplesDropdown button');
+
+                if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && e.target !== button) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Add zoom info display to the preview panel
+            const zoomInfo = document.createElement('div');
+            zoomInfo.id = 'zoomInfo';
+            zoomInfo.className = 'zoom-info';
+            zoomInfo.textContent = 'Zoom: 100%';
+            document.getElementById('preview').appendChild(zoomInfo);
+        };
+
+        // Function to handle starting drag
+        function startDrag(e) {
+            if (e.button === 0) { // Left mouse button
+                isDragging = true;
+                lastMousePosition = { x: e.clientX, y: e.clientY };
+                previewContent.style.cursor = 'grabbing';
+            }
+        }
+
+        // Function to handle dragging
+        function drag(e) {
+            if (!isDragging) return;
+
+            const dx = e.clientX - lastMousePosition.x;
+            const dy = e.clientY - lastMousePosition.y;
+
+            panOffset.x += dx;
+            panOffset.y += dy;
+
+            applyTransform();
+
+            lastMousePosition = { x: e.clientX, y: e.clientY };
+        }
+
+        // Function to handle ending drag
+        function endDrag() {
+            isDragging = false;
+            previewContent.style.cursor = 'default';
+        }
+
+        // Apply transform with both zoom and pan, ensure diagram is properly visible
+        function applyTransform() {
+            const svg = previewContent.querySelector('svg');
+            if (svg) {
+                svg.style.transform = `scale(${currentScale}) translate(${panOffset.x / currentScale}px, ${panOffset.y / currentScale}px)`;
+                svg.style.transformOrigin = 'center center';
+
+                // Update zoom info if needed
+                const zoomInfo = document.getElementById('zoomInfo');
+                if (zoomInfo) {
+                    zoomInfo.textContent = `Zoom: ${Math.round(currentScale * 100)}%`;
+                }
+            }
+        }
+
+        // Update color inputs when theme changes
+        function changeTheme(theme) {
+            // Update active theme
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Set current theme
+            currentTheme = theme;
+
+            // Update color inputs
+            const colors = themes[theme];
+            document.getElementById('nodeColor').value = colors.nodeColor;
+            document.getElementById('borderColor').value = colors.borderColor;
+            document.getElementById('lineColor').value = colors.lineColor;
+            document.getElementById('textColor').value = colors.textColor;
+
+            // Apply the theme
+            updateColors();
+        }
+
+        // Reset zoom and pan
+        function resetZoom() {
+            currentScale = 1;
+            panOffset = { x: 0, y: 0 };
+            applyTransform();
+        }
+
+        // Zoom in function
+        function zoomIn() {
+            if (currentScale < 5) {
+                currentScale *= 1.2;
+                applyTransform();
+            }
+        }
+
+        // Zoom out function
+        function zoomOut() {
+            if (currentScale > 0.2) {
+                currentScale /= 1.2;
+                applyTransform();
+            }
+        }
+
+        // Toggle fullscreen mode
+        function toggleFullscreen() {
+            preview.classList.toggle('preview-fullscreen');
+            if (preview.classList.contains('preview-fullscreen')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Toggle settings panel
+        function toggleSettings() {
+            const settings = document.getElementById('diagramSettings');
+            if (settings.style.display === 'none' || settings.style.display === '') {
+                settings.style.display = 'block';
+            } else {
+                settings.style.display = 'none';
+            }
+        }
+
+        // Update colors based on user selection
+        function updateColors() {
+            const nodeColor = document.getElementById('nodeColor').value;
+            const borderColor = document.getElementById('borderColor').value;
+            const lineColor = document.getElementById('lineColor').value;
+            const textColor = document.getElementById('textColor').value;
+
+            // Update CSS variables
+            document.documentElement.style.setProperty('--node-color', nodeColor);
+            document.documentElement.style.setProperty('--node-border', borderColor);
+            document.documentElement.style.setProperty('--edge-color', lineColor);
+            document.documentElement.style.setProperty('--text-dark', textColor);
+
+            // Update Mermaid theme variables
+            mermaid.initialize({
+                themeVariables: {
+                    primaryColor: nodeColor,
+                    primaryBorderColor: borderColor,
+                    lineColor: lineColor,
+                    textColor: textColor
+                }
+            });
+
+            // Re-render the diagram
+            renderDiagram();
+        }
+
+        // Show download options modal
+        function showDownloadOptions() {
+            document.getElementById('downloadModal').style.display = 'block';
+            updateEstimatedFileSize();
+        }
+
+        // Select download format
+        function selectDownloadOption(element, format) {
+            // Update UI
+            document.querySelectorAll('.download-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            // Set format
+            selectedDownloadFormat = format;
+
+            // Update file size estimate
+            updateEstimatedFileSize();
+        }
+
+        // Update estimated file size based on current settings
+        function updateEstimatedFileSize() {
+            const code = document.getElementById('code').value;
+            const scaleFactor = document.getElementById('scale-factor').value;
+            const format = selectedDownloadFormat;
+
+            // Rough file size estimates
+            let estimate;
+            if (format === 'svg') {
+                // SVG size roughly based on code length
+                estimate = Math.round(code.length * 1.2 / 1024);
+                if (estimate < 10) estimate = 10;
+            } else if (format === 'png') {
+                // PNG size is based on diagram complexity and scale factor
+                const complexity = code.length / 100;
+                estimate = Math.round((50 + complexity * 20) * (scaleFactor / 2));
+            } else if (format === 'png-large') {
+                // Large PNG is even bigger
+                const complexity = code.length / 100;
+                estimate = Math.round((100 + complexity * 40) * (scaleFactor / 2));
+            }
+
+            // Update UI
+            document.getElementById('estimatedFileSize').textContent = `Estimated file size: ~${estimate}KB`;
+        }
+
+        // Quick export SVG without showing modal
+        function quickExportSVG() {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) {
+                showError("No diagram to download. Please generate a preview first.");
+                return;
+            }
+
+            downloadSVG();
+            showStatus("SVG downloaded successfully!", true);
+        }
+
+        // Download the selected format
+        function downloadSelected() {
+            const format = selectedDownloadFormat;
+            const scaleFactor = document.getElementById('scale-factor').value;
+            // Always use best quality for explicit downloads
+            const pngQuality = "1.0";
+
+            if (format === 'svg') {
+                downloadSVG();
+            } else if (format === 'png') {
+                downloadPNG(scaleFactor, pngQuality);
+            } else if (format === 'png-large') {
+                downloadPNG(scaleFactor * 2, pngQuality);
+            }
+
+            // Hide modal
+            document.getElementById('downloadModal').style.display = 'none';
+        }
+
+        // Download as SVG
+        function downloadSVG() {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) {
+                showError("No diagram to download. Please generate a preview first.");
+                return;
+            }
+
+            // Clone the SVG to avoid modifying the displayed one
+            const svgClone = svg.cloneNode(true);
+
+            // Reset any transformations applied for zoom/pan
+            svgClone.style.transform = '';
+
+            // Get the original viewBox values
+            const originalViewBox = svg.getAttribute('viewBox');
+
+            // Apply styling for better export
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+            // Ensure the full diagram is included regardless of current zoom/pan
+            const bbox = svg.getBBox();
+            const padding = 40;
+            svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`);
+            svgClone.setAttribute('width', bbox.width + padding * 2);
+            svgClone.setAttribute('height', bbox.height + padding * 2);
+
+            // Add any additional styles from CSS
+            const mermaidStyles = getComputedStyle(svg);
+            let styleString = '<style>\n';
+            styleString += `.mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon, .mermaid .node path {
+                fill: ${mermaidStyles.getPropertyValue('--node-color') || '#ecf0f1'};
+                stroke: ${mermaidStyles.getPropertyValue('--node-border') || '#2c3e50'};
+                stroke-width: 2px;
+                rx: 8px;
+            }\n`;
+            styleString += `.mermaid .edgePath .path {
+                stroke: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
+                stroke-width: 2px;
+            }\n`;
+            styleString += `.mermaid .edgeLabel {
+                background: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }\n`;
+            styleString += `.mermaid .marker {
+                fill: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
+                stroke: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
+            }\n`;
+            styleString += '</style>';
+
+            // Add the style
+            svgClone.innerHTML = styleString + svgClone.innerHTML;
+
+            // Create blob and download
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgClone);
+            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+            saveAs(blob, 'mermaid-diagram.svg');
+
+            showStatus("SVG downloaded successfully!", true);
+        }
+
+        // Download as PNG
+        function downloadPNG(scaleFactor, quality) {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) {
+                showError("No diagram to download. Please generate a preview first.");
+                return;
+            }
+
+            // Show loading overlay
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+
+            // Clone the SVG to avoid modifying the displayed one
+            const svgClone = svg.cloneNode(true);
+
+            // Remove any transformations
+            svgClone.style.transform = '';
+
+            // Get dimensions properly from the real bounding box
+            const bbox = svg.getBBox();
+            const padding = 80; // Extra padding around the diagram
+
+            // Add padding
+            const paddedWidth = bbox.width + padding * 2;
+            const paddedHeight = bbox.height + padding * 2;
+
+            // Set proper viewBox and dimensions to ensure all content is visible
+            svgClone.setAttribute('width', paddedWidth);
+            svgClone.setAttribute('height', paddedHeight);
+            svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${paddedWidth} ${paddedHeight}`);
+
+            // Apply styling for better export
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+            // Create a Canvas element
+            const canvas = document.createElement('canvas');
+            canvas.width = paddedWidth * scaleFactor;
+            canvas.height = paddedHeight * scaleFactor;
+
+            // Get Canvas context
+            const ctx = canvas.getContext('2d');
+            ctx.scale(scaleFactor, scaleFactor);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, paddedWidth, paddedHeight);
+
+            // Convert SVG to string
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgClone);
+
+            // Create an Image from the SVG string
+            const img = new Image();
+            img.onload = function () {
+                // Draw the image onto the canvas
+                ctx.drawImage(img, 0, 0, paddedWidth, paddedHeight);
+
+                // Convert canvas to PNG
+                const pngDataUrl = canvas.toDataURL('image/png', parseFloat(quality));
+
+                // Create download link
+                const downloadLink = document.createElement('a');
+                downloadLink.href = pngDataUrl;
+                downloadLink.download = 'mermaid-diagram.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                // Hide loading overlay
+                loadingOverlay.style.display = 'none';
+
+                showStatus("PNG downloaded successfully!", true);
+            };
+
+            // Handle any errors in loading the image
+            img.onerror = function (error) {
+                loadingOverlay.style.display = 'none';
+                showError("Error generating PNG: " + error);
+            };
+
+            // Set image source to SVG
+            try {
+                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+            } catch (error) {
+                loadingOverlay.style.display = 'none';
+                showError("Error processing SVG: " + error.message);
+            }
+        }
+
+        // Load example diagrams
+        function loadExample(type) {
+            let codeExample = '';
+
+            // Hide the dropdown after selecting an example
+            document.getElementById('examplesDropdownContent').classList.remove('show');
+
+            switch (type) {
+                case 'flowchart':
+                    codeExample = `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[Deploy to Production]
+    E --> F[Monitor]
+    F --> G{Issues?}
+    G -->|Yes| D
+    G -->|No| F`;
+                    break;
+                case 'sequence':
+                    codeExample = `sequenceDiagram
+    participant User
+    participant Client
+    participant Server
+    participant Database
+
+    User->>Client: Enter Data
+    Client->>Server: Submit Request
+    Server->>Database: Query Data
+    Database->>Server: Return Results
+    Server->>Client: Response
+    Client->>User: Display Results
+
+    Note over Client,Server: Secure Connection`;
+                    break;
+                case 'classDiagram':
+                    codeExample = `classDiagram
+    class Animal {
+        +String name
+        +int age
+        +makeSound()
+    }
+    
+    class Dog {
+        +String breed
+        +fetch()
+    }
+    
+    class Cat {
+        +String color
+        +scratch()
+    }
+    
+    Animal <|-- Dog
+    Animal <|-- Cat`;
+                    break;
+                case 'entityRelationship':
+                    codeExample = `erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    ORDER ||--|{ LINE-ITEM : contains
+    CUSTOMER }|..|{ DELIVERY-ADDRESS : uses`;
+                    break;
+                case 'gantt':
+                    codeExample = `gantt
+    title Project Schedule
+    dateFormat  YYYY-MM-DD
+    section Planning
+    Requirements   :done,    des1, 2023-01-01, 2023-01-05
+    Design         :active,  des2, 2023-01-06, 2023-01-10
+    section Development
+    Implementation :         des3, after des2, 15d
+    Testing        :         des4, after des3, 10d
+    section Deployment
+    Deployment     :         des5, after des4, 5d
+    Maintenance    :         des6, after des5, 20d`;
+                    break;
+                case 'stateDiagram':
+                    codeExample = `stateDiagram-v2
+    [*] --> Still
+    Still --> [*]
+    
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]`;
+                    break;
+                default:
+                    codeExample = `graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action]
+    B -->|No| D[End]`;
+            }
+
+            document.getElementById('code').value = codeExample;
+            renderDiagram();
+        }
+
+        // Render the Mermaid diagram
+        function renderDiagram() {
+            const code = document.getElementById('code').value.trim();
+            if (!code) {
+                showError("Please enter Mermaid code.");
+                return;
+            }
+
+            // Clear any previous errors
+            hideError();
+
+            try {
+                // Reset zoom and pan
+                resetZoom();
+
+                // Get the Mermaid container and clear it first
+                const mermaidDiv = document.querySelector('.mermaid');
+                mermaidDiv.innerHTML = '';
+
+                // Create a loading indicator
+                showStatus("Rendering diagram...");
+
+                // Render the diagram with a slight delay to ensure UI updates
+                setTimeout(() => {
+                    try {
+                        mermaid.render('mermaid-svg', code)
+                            .then(result => {
+                                mermaidDiv.innerHTML = result.svg;
+
+                                // Apply custom styling
+                                updateDiagramStyling();
+
+                                // Show success message
+                                showStatus("Diagram generated successfully!", true);
+                            })
+                            .catch(error => {
+                                console.error("Mermaid render error:", error);
+                                showError("Error rendering diagram. Please check your syntax: " + error.message);
+                                mermaidDiv.innerHTML = '';
+                            });
+                    } catch (renderError) {
+                        console.error("Render error:", renderError);
+                        showError("Error rendering diagram: " + renderError.message);
+                        mermaidDiv.innerHTML = '';
+                    }
+                }, 50);
+            } catch (error) {
+                console.error("General error:", error);
+                showError("An error occurred. Please check your code syntax: " + error.message);
+                document.querySelector('.mermaid').innerHTML = '';
+            }
+        }
+
+        // Apply custom styling to the diagram
+        function updateDiagramStyling() {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) return;
+
+            // Center the diagram and adjust its size
+            const bbox = svg.getBBox();
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+
+            // Force a minimum size with much more padding
+            const minimumWidth = 450;
+            const minimumHeight = 350;
+            const padding = 100; // Increased padding to ensure edge labels are visible
+            const width = Math.max(bbox.width + padding * 2, minimumWidth);
+            const height = Math.max(bbox.height + padding * 2, minimumHeight);
+
+            // Set viewBox for proper scaling with padding to ensure diagram is more visible
+            svg.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`);
+
+            // Fix for edge labels - ensure they have enough space
+            const edgeLabels = svg.querySelectorAll('.edgeLabel');
+            edgeLabels.forEach(label => {
+                // Add extra padding to edge labels
+                const labelBackground = label.querySelector('foreignObject');
+                if (labelBackground) {
+                    // Make sure the foreign object is large enough
+                    const lblBox = label.getBBox();
+                    labelBackground.setAttribute('width', Math.max(40, lblBox.width + 20));
+                    labelBackground.setAttribute('height', Math.max(22, lblBox.height + 10));
+
+                    // Center the text
+                    const textDiv = labelBackground.querySelector('div');
+                    if (textDiv) {
+                        textDiv.style.paddingLeft = '4px';
+                        textDiv.style.paddingRight = '4px';
+                        textDiv.style.display = 'flex';
+                        textDiv.style.justifyContent = 'center';
+                        textDiv.style.alignItems = 'center';
+                        textDiv.style.width = '100%';
+                        textDiv.style.height = '100%';
+                    }
+                }
+            });
+
+            // Apply smooth transitions for zoom/pan
+            svg.style.transition = 'transform 0.3s ease';
+
+            // Apply a slight initial zoom to make diagram more visible
+            currentScale = 0.95; // Set initial scale to a reasonable value
+            applyTransform();
+        }
+
+        // Show detailed error in preview panel
+        function showDetailedError(error) {
+            const errorDetails = document.getElementById('renderErrorDetails');
+            errorDetails.style.display = 'block';
+            errorDetails.textContent = 'Mermaid syntax error: ' + error;
+
+            // Hide loading
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+
+            // Hide after 8 seconds
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 8000);
+        }
+
+        // Hide error message
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('renderErrorDetails').style.display = 'none';
+        }
+
+        // Show status message
+        function showStatus(message, isSuccess = false) {
+            const statusElement = document.getElementById('statusIndicator');
+            statusElement.textContent = message;
+            statusElement.style.display = 'block';
+
+            if (isSuccess) {
+                statusElement.classList.add('success');
+            } else {
+                statusElement.classList.remove('success');
+            }
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // Theme definitions
+        const themes = {
+            default: {
+                nodeColor: '#ecf0f1',
+                borderColor: '#2c3e50',
+                lineColor: '#3498db',
+                textColor: '#2c3e50'
+            },
+            blue: {
+                nodeColor: '#e3f2fd',
+                borderColor: '#1976d2',
+                lineColor: '#2196f3',
+                textColor: '#0d47a1'
+            },
+            red: {
+                nodeColor: '#ffebee',
+                borderColor: '#c62828',
+                lineColor: '#e53935',
+                textColor: '#b71c1c'
+            },
+            green: {
+                nodeColor: '#e8f5e9',
+                borderColor: '#2e7d32',
+                lineColor: '#43a047',
+                textColor: '#1b5e20'
+            },
+            purple: {
+                nodeColor: '#f3e5f5',
+                borderColor: '#6a1b9a',
+                lineColor: '#9c27b0',
+                textColor: '#4a148c'
+            },
+            orange: {
+                nodeColor: '#fff3e0',
+                borderColor: '#e65100',
+                lineColor: '#ff9800',
+                textColor: '#bf360c'
+            }
+        };
+    </script>
+</body>
+
+</html> // Toggle examples dropdown
+function toggleExamplesDropdown() {
+const dropdown = document.getElementById('examplesDropdownContent');
+dropdown.classList.toggle('show');
+
+// Close dropdown when clicking elsewhere
+document.addEventListener('click', function closeDropdown(e) {
+const dropdown = document.getElementById('examplesDropdownContent');
+const button = document.querySelector('#examplesDropdown button');
+
+if (!dropdown.contains(e.target) && e.target !== button) {
+dropdown.classList.remove('show');
+document.removeEventListener('click', closeDropdown);
+}
+});
+} .error-message {
+color: #dc3545;
+padding: 12px;
+background: #ffe3e6;
+border-radius: 6px;
+margin-top: 12px;
+display: none;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Mermaid Diagram Generator</title>
+    <!-- Updated to latest Mermaid version -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+    <!-- Better SVG to Canvas conversion library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.10/umd.min.js"></script>
+    <!-- Added FileSaver.js for better download support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-light: #f8f9fa;
+            --text-dark: #2c3e50;
+            --node-color: #ecf0f1;
+            --node-border: #2c3e50;
+            --edge-color: #3498db;
+            --header-bg: #f1f1f1;
+            --button-hover: #34495e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: var(--background-light);
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .zoom-info {
+            position: absolute;
+            top: 62px;
+            right: 16px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--text-dark);
+            z-index: 999;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            height: 100vh;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .editor-panel {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 48px);
+        }
+
+        #preview {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: auto;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 48px);
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            padding: 16px;
+            margin: 16px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            resize: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            background: #fafafa;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .panel-header {
+            background: var(--header-bg);
+            padding: 16px;
+            border-radius: 8px 8px 0 0;
+            margin: -24px -24px 20px -24px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .button-group {
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-left-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-details {
+            color: #dc3545;
+            padding: 12px;
+            margin: 16px;
+            background: #ffe3e6;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 12px;
+            max-width: 90%;
+            display: none;
+        }
+
+        .preview-fullscreen {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: white;
+            padding: 40px !important;
+        }
+
+        .controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1001;
+            display: flex;
+            gap: 12px;
+            /* Increased gap to prevent overlap */
+        }
+
+        .zoom-control {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 18px;
+        }
+
+        .zoom-control:hover {
+            background-color: var(--button-hover);
+        }
+
+        /* Enhanced Mermaid styling */
+        .mermaid {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .mermaid .node rect,
+        .mermaid .node circle,
+        .mermaid .node ellipse,
+        .mermaid .node polygon,
+        .mermaid .node path {
+            fill: var(--node-color) !important;
+            stroke: var(--node-border) !important;
+            stroke-width: 2px !important;
+            rx: 8px !important;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .mermaid .edgeLabel {
+            background: white !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        }
+
+        .mermaid .marker {
+            fill: var(--edge-color) !important;
+            stroke: var(--edge-color) !important;
+        }
+
+        .mermaid .edgePath .path {
+            stroke: var(--edge-color) !important;
+            stroke-width: 2px !important;
+        }
+
+        /* Quality settings section */
+        .quality-settings {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .settings-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .quick-export {
+            background-color: #27ae60;
+        }
+
+        .quick-export:hover {
+            background-color: #2ecc71;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .settings-row label {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .settings-row input,
+        .settings-row select {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        /* Status indicator */
+        .status-indicator {
+            padding: 8px 12px;
+            border-radius: 4px;
+            background: #e8f4fd;
+            color: var(--secondary-color);
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .status-indicator.success {
+            background: #e3fcef;
+            color: #0ca678;
+        }
+
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 8px;
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Download format choice */
+        .download-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .download-option {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .download-option:hover {
+            border-color: var(--secondary-color);
+            background-color: #f0f9ff;
+        }
+
+        .download-option.active {
+            border-color: var(--secondary-color);
+            background-color: #e3f2fd;
+        }
+
+        .download-option h4 {
+            margin: 8px 0;
+        }
+
+        .download-option p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+
+        /* File size indicator */
+        .file-size {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        /* Examples dropdown */
+        .examples-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .examples-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Changed from hover to class-based toggle for proper dropdown behavior */
+        .examples-dropdown .examples-dropdown-content.show {
+            display: block;
+        }
+
+        .example-item {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .example-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Sidebar settings */
+        .diagram-settings {
+            position: absolute;
+            top: 70px;
+            right: 16px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 250px;
+            display: none;
+        }
+
+        .settings-toggle {
+            position: absolute;
+            top: 16px;
+            right: 72px;
+            /* Adjusted position to prevent overlap */
+            z-index: 1001;
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .theme-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .theme-option:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary-color);
+        }
+
+        /* Color picker */
+        .color-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .color-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .color-item label {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .color-item input[type="color"] {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            background: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="editor-panel">
+            <div class="panel-header">
+                <h2>Mermaid Code Editor</h2>
+            </div>
+            <textarea id="code" placeholder="graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action]
+    B -->|No| D[End]"></textarea>
+            <div class="examples-dropdown" id="examplesDropdown">
+                <button class="secondary" onclick="toggleExamplesDropdown()">Load Example</button>
+                <div class="examples-dropdown-content" id="examplesDropdownContent">
+                    <a class="example-item" onclick="loadExample('flowchart')">Flowchart</a>
+                    <a class="example-item" onclick="loadExample('sequence')">Sequence Diagram</a>
+                    <a class="example-item" onclick="loadExample('classDiagram')">Class Diagram</a>
+                    <a class="example-item" onclick="loadExample('entityRelationship')">Entity Relationship</a>
+                    <a class="example-item" onclick="loadExample('gantt')">Gantt Chart</a>
+                    <a class="example-item" onclick="loadExample('stateDiagram')">State Diagram</a>
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="renderDiagram()">Generate Preview</button>
+                <button onclick="quickExportSVG()" class="quick-export">Quick Export SVG</button>
+                <button class="secondary" onclick="showDownloadOptions()">Advanced Download Options</button>
+            </div>
+            <!-- Simplified to avoid confusion with download options modal -->
+            <div class="quality-settings">
+                <h3>Default Export Settings</h3>
+                <div class="settings-info">
+                    These settings are applied when using Quick Export. For more options, use the "Download Options"
+                    button.
+                </div>
+                <div class="settings-row">
+                    <label for="scale-factor">Default Scale Factor:</label>
+                    <input type="number" id="scale-factor" min="1" max="8" value="4" step="1">
+                    <div class="tooltip">ℹ️
+                        <span class="tooltip-text">Higher values create larger, more detailed images but increase file
+                            size</span>
+                    </div>
+                </div>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="status-indicator" id="statusIndicator"></div>
+        </div>
+        <div id="preview">
+            <div class="panel-header">
+                <h2>Diagram Preview</h2>
+            </div>
+            <div class="controls">
+                <button class="zoom-control settings-toggle" onclick="toggleSettings()">⚙️</button>
+                <button class="zoom-control" onclick="toggleFullscreen()">↔️</button>
+                <button class="zoom-control" onclick="zoomIn()">+</button>
+                <button class="zoom-control" onclick="zoomOut()">-</button>
+                <button class="zoom-control" onclick="resetZoom()">↻</button>
+            </div>
+            <div class="diagram-settings" id="diagramSettings">
+                <h3>Diagram Settings</h3>
+                <h4>Theme</h4>
+                <div class="theme-selector">
+                    <div class="theme-option active" style="background-color: #2c3e50;"
+                        onclick="changeTheme('default')"></div>
+                    <div class="theme-option" style="background-color: #3498db;" onclick="changeTheme('blue')"></div>
+                    <div class="theme-option" style="background-color: #e74c3c;" onclick="changeTheme('red')"></div>
+                    <div class="theme-option" style="background-color: #2ecc71;" onclick="changeTheme('green')"></div>
+                    <div class="theme-option" style="background-color: #9b59b6;" onclick="changeTheme('purple')"></div>
+                    <div class="theme-option" style="background-color: #f39c12;" onclick="changeTheme('orange')"></div>
+                </div>
+                <h4>Custom Colors</h4>
+                <div class="color-picker">
+                    <div class="color-item">
+                        <label>Node Color:</label>
+                        <input type="color" id="nodeColor" value="#ecf0f1" onchange="updateColors()">
+                    </div>
+                    <div class="color-item">
+                        <label>Border Color:</label>
+                        <input type="color" id="borderColor" value="#2c3e50" onchange="updateColors()">
+                    </div>
+                    <div class="color-item">
+                        <label>Line Color:</label>
+                        <input type="color" id="lineColor" value="#3498db" onchange="updateColors()">
+                    </div>
+                    <div class="color-item">
+                        <label>Text Color:</label>
+                        <input type="color" id="textColor" value="#2c3e50" onchange="updateColors()">
+                    </div>
+                </div>
+                <button class="secondary" style="margin-top: 16px; width: 100%;" onclick="renderDiagram()">Apply
+                    Changes</button>
+            </div>
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <span>Generating High-Resolution Image...</span>
+            </div>
+            <div class="preview-content" id="previewContent">
+                <div class="mermaid-container">
+                    <div class="mermaid"></div>
+                </div>
+                <div class="error-details" id="renderErrorDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download modal -->
+    <div id="downloadModal"
+        style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div
+            style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0;">Download Options</h3>
+            <p>Choose your preferred format:</p>
+            <div class="download-options">
+                <div class="download-option active" onclick="selectDownloadOption(this, 'svg')">
+                    <h4>SVG</h4>
+                    <p>Vector format<br>Best for scaling</p>
+                </div>
+                <div class="download-option" onclick="selectDownloadOption(this, 'png')">
+                    <h4>PNG</h4>
+                    <p>High resolution<br>For documents</p>
+                </div>
+                <div class="download-option" onclick="selectDownloadOption(this, 'png-large')">
+                    <h4>PNG (Large)</h4>
+                    <p>Extra high resolution<br>For printing</p>
+                </div>
+            </div>
+            <div class="file-size" id="estimatedFileSize">Estimated file size: ~50KB</div>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <button class="secondary"
+                    onclick="document.getElementById('downloadModal').style.display='none'">Cancel</button>
+                <button onclick="downloadSelected()">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid with better default settings
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#ecf0f1',
+                primaryBorderColor: '#2c3e50',
+                lineColor: '#3498db',
+                fontFamily: 'Segoe UI, sans-serif',
+                fontSize: '16px',
+                textColor: '#2c3e50',
+                edgeLabelBackground: '#ffffff',
+                clusterBkg: '#e0e0e0',
+                tertiaryColor: '#bdc3c7'
+            },
+            flowchart: {
+                curve: 'basis',
+                nodeSpacing: 50,
+                rankSpacing: 100,
+                diagramPadding: 20,
+                htmlLabels: true
+            },
+            securityLevel: 'loose',
+            logLevel: 'error',
+            // Increased timeouts for complex diagrams
+            parseError: function (err, hash) {
+                showDetailedError(err);
+            }
+        });
+
+        let currentScale = 1;
+        let panOffset = { x: 0, y: 0 };
+        const preview = document.getElementById('preview');
+        const previewContent = document.getElementById('previewContent');
+        let selectedDownloadFormat = 'svg';
+        let isDragging = false;
+        let lastMousePosition = { x: 0, y: 0 };
+        let currentTheme = 'default';
+
+        // Fix to ensure the settings button and zoom controls don't overlap
+        window.onload = function () {
+            // Set the example code
+            document.getElementById('code').value = `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[Deploy to Production]
+    E --> F[Monitor]
+    F --> G{Issues?}
+    G -->|Yes| D
+    G -->|No| F`;
+
+            // Make sure the UI is properly arranged
+            const controlsDiv = document.querySelector('.controls');
+            Array.from(controlsDiv.children).forEach((button, index) => {
+                button.style.position = 'relative';
+                button.style.zIndex = 1002 + index; // Ensure proper stacking
+            });
+
+            // Move the settings toggle button to avoid overlap
+            const settingsToggle = document.querySelector('.settings-toggle');
+            if (settingsToggle) {
+                settingsToggle.style.right = '72px';
+            }
+
+            // Render the initial diagram
+            renderDiagram();
+
+            // Initial file size estimate
+            updateEstimatedFileSize();
+
+            // Add drag functionality for panning
+            previewContent.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+
+            // Add wheel event for zooming
+            previewContent.addEventListener('wheel', function (e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    if (e.deltaY < 0) {
+                        zoomIn();
+                    } else {
+                        zoomOut();
+                    }
+                }
+            });
+
+            // Close example dropdown when clicking outside of it
+            document.addEventListener('click', function (e) {
+                const dropdown = document.getElementById('examplesDropdownContent');
+                const button = document.querySelector('#examplesDropdown button');
+
+                if (dropdown.classList.contains('show') && !dropdown.contains(e.target) && e.target !== button) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Add zoom info display to the preview panel
+            const zoomInfo = document.createElement('div');
+            zoomInfo.id = 'zoomInfo';
+            zoomInfo.className = 'zoom-info';
+            zoomInfo.textContent = 'Zoom: 100%';
+            document.getElementById('preview').appendChild(zoomInfo);
+        };
+
+        // Theme definitions
+        const themes = {
+            default: {
+                nodeColor: '#ecf0f1',
+                borderColor: '#2c3e50',
+                lineColor: '#3498db',
+                textColor: '#2c3e50'
+            },
+            blue: {
+                nodeColor: '#e3f2fd',
+                borderColor: '#1976d2',
+                lineColor: '#2196f3',
+                textColor: '#0d47a1'
+            },
+            red: {
+                nodeColor: '#ffebee',
+                borderColor: '#c62828',
+                lineColor: '#e53935',
+                textColor: '#b71c1c'
+            },
+            green: {
+                nodeColor: '#e8f5e9',
+                borderColor: '#2e7d32',
+                lineColor: '#43a047',
+                textColor: '#1b5e20'
+            },
+            purple: {
+                nodeColor: '#f3e5f5',
+                borderColor: '#6a1b9a',
+                lineColor: '#9c27b0',
+                textColor: '#4a148c'
+            },
+            orange: {
+                nodeColor: '#fff3e0',
+                borderColor: '#e65100',
+                lineColor: '#ff9800',
+                textColor: '#bf360c'
+            }
+        };
+
+        // Function to handle starting drag
+        function startDrag(e) {
+            if (e.button === 0) { // Left mouse button
+                isDragging = true;
+                lastMousePosition = { x: e.clientX, y: e.clientY };
+                previewContent.style.cursor = 'grabbing';
+            }
+        }
+
+        // Function to handle dragging
+        function drag(e) {
+            if (!isDragging) return;
+
+            const dx = e.clientX - lastMousePosition.x;
+            const dy = e.clientY - lastMousePosition.y;
+
+            panOffset.x += dx;
+            panOffset.y += dy;
+
+            applyTransform();
+
+            lastMousePosition = { x: e.clientX, y: e.clientY };
+        }
+
+        // Function to handle ending drag
+        function endDrag() {
+            isDragging = false;
+            previewContent.style.cursor = 'default';
+        }
+
+        // Apply transform with both zoom and pan, ensure diagram is properly visible
+        function applyTransform() {
+            const svg = previewContent.querySelector('svg');
+            if (svg) {
+                svg.style.transform = `scale(${currentScale}) translate(${panOffset.x / currentScale}px, ${panOffset.y / currentScale}px)`;
+                svg.style.transformOrigin = 'center center';
+
+                // Update zoom info if needed
+                const zoomInfo = document.getElementById('zoomInfo');
+                if (zoomInfo) {
+                    zoomInfo.textContent = `Zoom: ${Math.round(currentScale * 100)}%`;
+                }
+            }
+        }
+
+        // Update color inputs when theme changes
+        function changeTheme(theme) {
+            // Update active theme
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Set current theme
+            currentTheme = theme;
+
+            // Update color inputs
+            const colors = themes[theme];
+            document.getElementById('nodeColor').value = colors.nodeColor;
+            document.getElementById('borderColor').value = colors.borderColor;
+            document.getElementById('lineColor').value = colors.lineColor;
+            document.getElementById('textColor').value = colors.textColor;
+
+            // Apply the theme
+            updateColors();
+        }
+
+        // Reset zoom and pan
+        function resetZoom() {
+            currentScale = 1;
+            panOffset = { x: 0, y: 0 };
+            applyTransform();
+        }
+
+        // Zoom in function
+        function zoomIn() {
+            if (currentScale < 5) {
+                currentScale *= 1.2;
+                applyTransform();
+            }
+        }
+
+        // Zoom out function
+        function zoomOut() {
+            if (currentScale > 0.2) {
+                currentScale /= 1.2;
+                applyTransform();
+            }
+        }
+
+        // Toggle fullscreen mode
+        function toggleFullscreen() {
+            preview.classList.toggle('preview-fullscreen');
+            if (preview.classList.contains('preview-fullscreen')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Toggle settings panel
+        function toggleSettings() {
+            const settings = document.getElementById('diagramSettings');
+            if (settings.style.display === 'none' || settings.style.display === '') {
+                settings.style.display = 'block';
+            } else {
+                settings.style.display = 'none';
+            }
+        }
+
+        // Update colors based on user selection
+        function updateColors() {
+            const nodeColor = document.getElementById('nodeColor').value;
+            const borderColor = document.getElementById('borderColor').value;
+            const lineColor = document.getElementById('lineColor').value;
+            const textColor = document.getElementById('textColor').value;
+
+            // Update CSS variables
+            document.documentElement.style.setProperty('--node-color', nodeColor);
+            document.documentElement.style.setProperty('--node-border', borderColor);
+            document.documentElement.style.setProperty('--edge-color', lineColor);
+            document.documentElement.style.setProperty('--text-dark', textColor);
+
+            // Update Mermaid theme variables
+            mermaid.initialize({
+                themeVariables: {
+                    primaryColor: nodeColor,
+                    primaryBorderColor: borderColor,
+                    lineColor: lineColor,
+                    textColor: textColor
+                }
+            });
+
+            // Re-render the diagram
+            renderDiagram();
+        }
+
+        // Show download options modal
+        function showDownloadOptions() {
+            document.getElementById('downloadModal').style.display = 'block';
+            updateEstimatedFileSize();
+        }
+
+        // Select download format
+        function selectDownloadOption(element, format) {
+            // Update UI
+            document.querySelectorAll('.download-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            // Set format
+            selectedDownloadFormat = format;
+
+            // Update file size estimate
+            updateEstimatedFileSize();
+        }
+
+        // Update estimated file size based on current settings
+        function updateEstimatedFileSize() {
+            const code = document.getElementById('code').value;
+            const scaleFactor = document.getElementById('scale-factor').value;
+            const format = selectedDownloadFormat;
+
+            // Rough file size estimates
+            let estimate;
+            if (format === 'svg') {
+                // SVG size roughly based on code length
+                estimate = Math.round(code.length * 1.2 / 1024);
+                if (estimate < 10) estimate = 10;
+            } else if (format === 'png') {
+                // PNG size is based on diagram complexity and scale factor
+                const complexity = code.length / 100;
+                estimate = Math.round((50 + complexity * 20) * (scaleFactor / 2));
+            } else if (format === 'png-large') {
+                // Large PNG is even bigger
+                const complexity = code.length / 100;
+                estimate = Math.round((100 + complexity * 40) * (scaleFactor / 2));
+            }
+
+            // Update UI
+            document.getElementById('estimatedFileSize').textContent = `Estimated file size: ~${estimate}KB`;
+        }
+
+        // Quick export SVG without showing modal
+        function quickExportSVG() {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) {
+                showError("No diagram to download. Please generate a preview first.");
+                return;
+            }
+
+            downloadSVG();
+            showStatus("SVG downloaded successfully!", true);
+        }
+
+        // Download the selected format
+        function downloadSelected() {
+            const format = selectedDownloadFormat;
+            const scaleFactor = document.getElementById('scale-factor').value;
+            // Always use best quality for explicit downloads
+            const pngQuality = "1.0";
+
+            if (format === 'svg') {
+                downloadSVG();
+            } else if (format === 'png') {
+                downloadPNG(scaleFactor, pngQuality);
+            } else if (format === 'png-large') {
+                downloadPNG(scaleFactor * 2, pngQuality);
+            }
+
+            // Hide modal
+            document.getElementById('downloadModal').style.display = 'none';
+        }
+
+        // Download as SVG
+        function downloadSVG() {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) {
+                showError("No diagram to download. Please generate a preview first.");
+                return;
+            }
+
+            // Clone the SVG to avoid modifying the displayed one
+            const svgClone = svg.cloneNode(true);
+
+            // Apply styling for better export
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+            // Add any additional styles from CSS
+            const mermaidStyles = getComputedStyle(svg);
+            let styleString = '<style>\n';
+            styleString += `.mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon, .mermaid .node path {
+                fill: ${mermaidStyles.getPropertyValue('--node-color') || '#ecf0f1'};
+                stroke: ${mermaidStyles.getPropertyValue('--node-border') || '#2c3e50'};
+                stroke-width: 2px;
+                rx: 8px;
+            }\n`;
+            styleString += `.mermaid .edgePath .path {
+                stroke: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
+                stroke-width: 2px;
+            }\n`;
+            styleString += `.mermaid .edgeLabel {
+                background: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }\n`;
+            styleString += `.mermaid .marker {
+                fill: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
+                stroke: ${mermaidStyles.getPropertyValue('--edge-color') || '#3498db'};
+            }\n`;
+            styleString += '</style>';
+
+            // Add the style
+            svgClone.innerHTML = styleString + svgClone.innerHTML;
+
+            // Create blob and download
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgClone);
+            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+            saveAs(blob, 'mermaid-diagram.svg');
+
+            showStatus("SVG downloaded successfully!", true);
+        }
+
+        // Download as PNG
+        function downloadPNG(scaleFactor, quality) {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) {
+                showError("No diagram to download. Please generate a preview first.");
+                return;
+            }
+
+            // Show loading overlay
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+
+            // Clone the SVG to avoid modifying the displayed one
+            const svgClone = svg.cloneNode(true);
+
+            // Get dimensions
+            const bbox = svg.getBBox();
+            const width = bbox.width;
+            const height = bbox.height;
+
+            // Add padding
+            const paddedWidth = width + 40;
+            const paddedHeight = height + 40;
+
+            // Set viewBox and dimensions
+            svgClone.setAttribute('width', paddedWidth);
+            svgClone.setAttribute('height', paddedHeight);
+            svgClone.setAttribute('viewBox', `${bbox.x - 20} ${bbox.y - 20} ${paddedWidth} ${paddedHeight}`);
+
+            // Apply styling for better export
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+            // Create a Canvas element
+            const canvas = document.createElement('canvas');
+            canvas.width = paddedWidth * scaleFactor;
+            canvas.height = paddedHeight * scaleFactor;
+
+            // Get Canvas context
+            const ctx = canvas.getContext('2d');
+            ctx.scale(scaleFactor, scaleFactor);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, paddedWidth, paddedHeight);
+
+            // Convert SVG to string
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgClone);
+
+            // Create an Image from the SVG string
+            const img = new Image();
+            img.onload = function () {
+                // Draw the image onto the canvas
+                ctx.drawImage(img, 0, 0, paddedWidth, paddedHeight);
+
+                // Convert canvas to PNG
+                const pngDataUrl = canvas.toDataURL('image/png', parseFloat(quality));
+
+                // Create download link
+                const downloadLink = document.createElement('a');
+                downloadLink.href = pngDataUrl;
+                downloadLink.download = 'mermaid-diagram.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                // Hide loading overlay
+                loadingOverlay.style.display = 'none';
+
+                showStatus("PNG downloaded successfully!", true);
+            };
+
+            // Set image source to SVG
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+        }
+
+        // Load example diagrams
+        function loadExample(type) {
+            let codeExample = '';
+
+            // Hide the dropdown after selecting an example
+            document.getElementById('examplesDropdownContent').classList.remove('show');
+
+            switch (type) {
+                case 'flowchart':
+                    codeExample = `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[Deploy to Production]
+    E --> F[Monitor]
+    F --> G{Issues?}
+    G -->|Yes| D
+    G -->|No| F`;
+                    break;
+                case 'sequence':
+                    codeExample = `sequenceDiagram
+    participant User
+    participant Client
+    participant Server
+    participant Database
+
+    User->>Client: Enter Data
+    Client->>Server: Submit Request
+    Server->>Database: Query Data
+    Database->>Server: Return Results
+    Server->>Client: Response
+    Client->>User: Display Results
+
+    Note over Client,Server: Secure Connection`;
+                    break;
+                case 'classDiagram':
+                    codeExample = `classDiagram
+    class Animal {
+        +String name
+        +int age
+        +makeSound()
+    }
+    
+    class Dog {
+        +String breed
+        +fetch()
+    }
+    
+    class Cat {
+        +String color
+        +scratch()
+    }
+    
+    Animal <|-- Dog
+    Animal <|-- Cat`;
+                    break;
+                case 'entityRelationship':
+                    codeExample = `erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    ORDER ||--|{ LINE-ITEM : contains
+    CUSTOMER }|..|{ DELIVERY-ADDRESS : uses`;
+                    break;
+                case 'gantt':
+                    codeExample = `gantt
+    title Project Schedule
+    dateFormat  YYYY-MM-DD
+    section Planning
+    Requirements   :done,    des1, 2023-01-01, 2023-01-05
+    Design         :active,  des2, 2023-01-06, 2023-01-10
+    section Development
+    Implementation :         des3, after des2, 15d
+    Testing        :         des4, after des3, 10d
+    section Deployment
+    Deployment     :         des5, after des4, 5d
+    Maintenance    :         des6, after des5, 20d`;
+                    break;
+                case 'stateDiagram':
+                    codeExample = `stateDiagram-v2
+    [*] --> Still
+    Still --> [*]
+    
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]`;
+                    break;
+                default:
+                    codeExample = `graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action]
+    B -->|No| D[End]`;
+            }
+
+            document.getElementById('code').value = codeExample;
+            renderDiagram();
+        }
+
+        // Render the Mermaid diagram
+        function renderDiagram() {
+            const code = document.getElementById('code').value.trim();
+            if (!code) {
+                showError("Please enter Mermaid code.");
+                return;
+            }
+
+            // Clear any previous errors
+            hideError();
+
+            try {
+                // Reset zoom and pan
+                resetZoom();
+
+                // Get the Mermaid container and clear it first
+                const mermaidDiv = document.querySelector('.mermaid');
+                mermaidDiv.innerHTML = '';
+
+                // Create a loading indicator
+                showStatus("Rendering diagram...");
+
+                // Render the diagram with a slight delay to ensure UI updates
+                setTimeout(() => {
+                    try {
+                        mermaid.render('mermaid-svg', code)
+                            .then(result => {
+                                mermaidDiv.innerHTML = result.svg;
+
+                                // Apply custom styling
+                                updateDiagramStyling();
+
+                                // Show success message
+                                showStatus("Diagram generated successfully!", true);
+                            })
+                            .catch(error => {
+                                console.error("Mermaid render error:", error);
+                                showError("Error rendering diagram. Please check your syntax: " + error.message);
+                                mermaidDiv.innerHTML = '';
+                            });
+                    } catch (renderError) {
+                        console.error("Render error:", renderError);
+                        showError("Error rendering diagram: " + renderError.message);
+                        mermaidDiv.innerHTML = '';
+                    }
+                }, 50);
+            } catch (error) {
+                console.error("General error:", error);
+                showError("An error occurred. Please check your code syntax: " + error.message);
+                document.querySelector('.mermaid').innerHTML = '';
+            }
+        }
+
+        // Apply custom styling to the diagram
+        function updateDiagramStyling() {
+            const svg = document.querySelector('.mermaid svg');
+            if (!svg) return;
+
+            // Center the diagram and adjust its size
+            const bbox = svg.getBBox();
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+
+            // Force a minimum size
+            const minimumWidth = 400;
+            const minimumHeight = 300;
+            const width = Math.max(bbox.width + 40, minimumWidth);
+            const height = Math.max(bbox.height + 40, minimumHeight);
+
+            // Set viewBox for proper scaling
+            svg.setAttribute('viewBox', `${bbox.x - 20} ${bbox.y - 20} ${width} ${height}`);
+
+            // Apply smooth transitions for zoom/pan
+            svg.style.transition = 'transform 0.3s ease';
+        }
+
+        // Show detailed error in preview panel
+        function showDetailedError(error) {
+            const errorDetails = document.getElementById('renderErrorDetails');
+            errorDetails.style.display = 'block';
+            errorDetails.textContent = 'Mermaid syntax error: ' + error;
+
+            // Hide loading
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+
+            // Hide after 8 seconds
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 8000);
+        }
+
+        // Hide error message
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('renderErrorDetails').style.display = 'none';
+        }
+
+        // Show status message
+        function showStatus(message, isSuccess = false) {
+            const statusElement = document.getElementById('statusIndicator');
+            statusElement.textContent = message;
+            statusElement.style.display = 'block';
+
+            if (isSuccess) {
+                statusElement.classList.add('success');
+            } else {
+                statusElement.classList.remove('success');
+            }
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
