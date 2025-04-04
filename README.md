@@ -2,6 +2,12 @@
 
 ![MermaidEase Preview](preview.png)
 
+## 🚀 Live Deployment
+Experience the tool directly in your browser:  
+https://fortunadoralph.github.io/MermaidEase/
+
+[![Open Visual Editor](https://img.shields.io/badge/Launch-Editor-2A5CAA?style=flat-square&logo=diagramsdotnet)](https://fortunadoralph.github.io/MermaidEase/)
+
 ## Why MermaidEase?
 
 MermaidEase stands out from other Mermaid tools by offering superior export capabilities completely free of charge. While other tools often limit export resolution or require paid subscriptions for high-quality exports, MermaidEase provides professional-grade SVG and high-resolution PNG exports with no limitations.
