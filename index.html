@@ -947,10 +947,10 @@
                 </div>
 
                 <div class="settings-group">
-                    <h4>🔧 Diagram Settings</h4>
+                    <h4>📐 Layout & Structure</h4>
                     <div class="setting-item">
                         <label>Direction:</label>
-                        <select id="diagramDirection" onchange="updateDiagramSettings()">
+                        <select id="diagramDirection" onchange="updateLayoutSettings()">
                             <option value="TD">Top to Bottom</option>
                             <option value="LR">Left to Right</option>
                             <option value="BT">Bottom to Top</option>
@@ -960,18 +960,18 @@
                     <div class="setting-item">
                         <label>Node Spacing:</label>
                         <input type="range" min="30" max="100" value="50" id="nodeSpacing"
-                            onchange="updateDiagramSettings()">
+                            onchange="updateLayoutSettings()" oninput="updateRangeDisplay('nodeSpacing', 'px')">
                         <span id="nodeSpacingValue">50px</span>
                     </div>
                     <div class="setting-item">
                         <label>Rank Spacing:</label>
                         <input type="range" min="50" max="150" value="100" id="rankSpacing"
-                            onchange="updateDiagramSettings()">
+                            onchange="updateLayoutSettings()" oninput="updateRangeDisplay('rankSpacing', 'px')">
                         <span id="rankSpacingValue">100px</span>
                     </div>
                     <div class="setting-item">
                         <label>Curve Style:</label>
-                        <select id="curveStyle" onchange="updateDiagramSettings()">
+                        <select id="curveStyle" onchange="updateLayoutSettings()">
                             <option value="basis">Curved</option>
                             <option value="linear">Straight</option>
                             <option value="step">Stepped</option>
@@ -981,10 +981,10 @@
                 </div>
 
                 <div class="settings-group">
-                    <h4>🎨 Visual Settings</h4>
+                    <h4>🎨 Appearance</h4>
                     <div class="setting-item">
                         <label>Font Size:</label>
-                        <select id="fontSize" onchange="updateDiagramSettings()">
+                        <select id="fontSize" onchange="updateAppearanceSettings()">
                             <option value="12">Small (12px)</option>
                             <option value="14" selected>Medium (14px)</option>
                             <option value="16">Large (16px)</option>
@@ -993,12 +993,13 @@
                     </div>
                     <div class="setting-item">
                         <label>Line Width:</label>
-                        <input type="range" min="1" max="5" value="2" id="lineWidth" onchange="updateDiagramSettings()">
+                        <input type="range" min="1" max="5" value="2" id="lineWidth" onchange="updateAppearanceSettings()"
+                            oninput="updateRangeDisplay('lineWidth', 'px')">
                         <span id="lineWidthValue">2px</span>
                     </div>
                     <div class="setting-item">
                         <label>Node Border:</label>
-                        <select id="nodeBorder" onchange="updateDiagramSettings()">
+                        <select id="nodeBorder" onchange="updateAppearanceSettings()">
                             <option value="1">Thin (1px)</option>
                             <option value="2" selected>Medium (2px)</option>
                             <option value="3">Thick (3px)</option>
@@ -1007,7 +1008,7 @@
                     <div class="setting-item">
                         <label>Corner Radius:</label>
                         <input type="range" min="0" max="15" value="5" id="cornerRadius"
-                            onchange="updateDiagramSettings()">
+                            onchange="updateAppearanceSettings()" oninput="updateRangeDisplay('cornerRadius', 'px')">
                         <span id="cornerRadiusValue">5px</span>
                     </div>
                 </div>
@@ -1407,6 +1408,9 @@
 
             // Setup event listeners
             setupEventListeners();
+
+            // Initialize appearance settings
+            initializeAppearanceSettings();
 
             // Auto-render initial diagram if there's content
             const code = document.getElementById('code').value.trim();
@@ -2375,42 +2379,166 @@
         // ===== EXPORT & SHARING =====
 
         /**
-         * Calculate the actual content bounds of an SVG element
-         * This ensures we capture all visible content, not just the viewBox
+         * Get a clean SVG copy without zoom/pan transforms for export with comprehensive validation
+         * This ensures exports are always at the original scale regardless of preview zoom
+         */
+            function getCleanSVGForExport() {
+                const originalSvg = document.querySelector('#mermaidContainer svg');
+                if (!originalSvg) {
+                    console.error('No SVG found in mermaid container');
+                    return null;
+                }
+
+                console.log('Creating clean SVG for export...');
+
+                // Clone the SVG to avoid modifying the original
+                const cleanSvg = originalSvg.cloneNode(true);
+
+                // Remove any CSS transforms that were applied for zoom/pan
+                cleanSvg.style.transform = '';
+                cleanSvg.style.transformOrigin = '';
+                cleanSvg.style.scale = '';
+
+                // Ensure the clean SVG has proper attributes
+                if (!cleanSvg.getAttribute('xmlns')) {
+                    cleanSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+                if (!cleanSvg.getAttribute('xmlns:xlink')) {
+                    cleanSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                }
+
+                // Preserve original viewBox if it exists
+                const originalViewBox = originalSvg.getAttribute('viewBox');
+                if (originalViewBox) {
+                    cleanSvg.setAttribute('viewBox', originalViewBox);
+                }
+
+                // Ensure proper SVG dimensions are preserved
+                const originalWidth = originalSvg.getAttribute('width');
+                const originalHeight = originalSvg.getAttribute('height');
+                if (originalWidth) cleanSvg.setAttribute('width', originalWidth);
+                if (originalHeight) cleanSvg.setAttribute('height', originalHeight);
+
+                // Validate that the clean SVG has content
+                const hasContent = cleanSvg.children.length > 0 || cleanSvg.textContent.trim().length > 0;
+                if (!hasContent) {
+                    console.warn('Clean SVG appears to have no content');
+                }
+
+                console.log('Clean SVG created successfully with', cleanSvg.children.length, 'child elements');
+                return cleanSvg;
+            }
+
+        /**
+         * Calculate the actual content bounds of an SVG element with comprehensive element detection
+         * This ensures we capture ALL visible content including text, paths, shapes, and Mermaid-specific elements
          */
         function calculateSVGContentBounds(svg) {
             try {
-                // Get all child elements that have actual content
-                const allElements = svg.querySelectorAll('*');
+                console.log('Calculating SVG content bounds for export...');
+
+                // Create a temporary SVG in the DOM to get accurate measurements
+                const tempContainer = document.createElement('div');
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '-9999px';
+                tempContainer.style.visibility = 'hidden';
+                document.body.appendChild(tempContainer);
+
+                // Clone the SVG for measurement
+                const tempSvg = svg.cloneNode(true);
+                tempSvg.style.transform = 'none'; // Remove any transforms
+                tempSvg.style.transformOrigin = 'initial';
+                tempContainer.appendChild(tempSvg);
+
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
                 let hasValidBounds = false;
 
-                // Iterate through all elements to find the actual content bounds
-                for (const element of allElements) {
+                // Get all elements that contribute to visual content
+                const contentSelectors = [
+                    'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'path',
+                    'text', 'tspan', 'textPath', 'g[class*="node"]', 'g[class*="edge"]',
+                    'g[class*="label"]', 'marker', 'use', 'image', 'foreignObject'
+                ];
+
+                const allContentElements = tempSvg.querySelectorAll(contentSelectors.join(','));
+                console.log(`Found ${allContentElements.length} content elements to analyze`);
+
+                // Analyze each content element
+                for (const element of allContentElements) {
                     try {
-                        // Skip elements that don't contribute to visual bounds
-                        if (element.tagName === 'defs' || element.tagName === 'style' ||
-                            element.tagName === 'title' || element.tagName === 'desc') {
+                        // Skip invisible or non-contributing elements
+                        if (element.style.display === 'none' ||
+                            element.style.visibility === 'hidden' ||
+                            element.getAttribute('opacity') === '0') {
                             continue;
                         }
 
-                        // Try to get bounding box
-                        let bbox;
+                        let bbox = null;
+
+                        // Try getBBox first (most accurate for SVG elements)
                         if (typeof element.getBBox === 'function') {
-                            bbox = element.getBBox();
-                        } else if (typeof element.getBoundingClientRect === 'function') {
-                            const rect = element.getBoundingClientRect();
-                            const svgRect = svg.getBoundingClientRect();
-                            bbox = {
-                                x: rect.left - svgRect.left,
-                                y: rect.top - svgRect.top,
-                                width: rect.width,
-                                height: rect.height
-                            };
+                            try {
+                                bbox = element.getBBox();
+                            } catch (e) {
+                                // getBBox can fail on some elements, continue to fallback
+                            }
                         }
 
-                        // Update bounds if we got a valid bbox
-                        if (bbox && bbox.width > 0 && bbox.height > 0) {
+                        // Fallback for elements where getBBox fails
+                        if (!bbox || bbox.width === 0 || bbox.height === 0) {
+                            // Handle specific element types
+                            if (element.tagName === 'text' || element.tagName === 'tspan') {
+                                // For text elements, try to get text metrics
+                                const textLength = element.getComputedTextLength ? element.getComputedTextLength() : 0;
+                                if (textLength > 0) {
+                                    const x = parseFloat(element.getAttribute('x') || 0);
+                                    const y = parseFloat(element.getAttribute('y') || 0);
+                                    bbox = {
+                                        x: x,
+                                        y: y - 12, // Approximate text height
+                                        width: textLength,
+                                        height: 16 // Approximate text height
+                                    };
+                                }
+                            } else if (element.tagName === 'g') {
+                                // For groups, try to get the bounding box of children
+                                try {
+                                    bbox = element.getBBox();
+                                } catch (e) {
+                                    // If group getBBox fails, calculate from children
+                                    const children = element.children;
+                                    if (children.length > 0) {
+                                        let gMinX = Infinity, gMinY = Infinity, gMaxX = -Infinity, gMaxY = -Infinity;
+                                        for (const child of children) {
+                                            try {
+                                                const childBbox = child.getBBox();
+                                                if (childBbox && childBbox.width > 0 && childBbox.height > 0) {
+                                                    gMinX = Math.min(gMinX, childBbox.x);
+                                                    gMinY = Math.min(gMinY, childBbox.y);
+                                                    gMaxX = Math.max(gMaxX, childBbox.x + childBbox.width);
+                                                    gMaxY = Math.max(gMaxY, childBbox.y + childBbox.height);
+                                                }
+                                            } catch (e) {
+                                                continue;
+                                            }
+                                        }
+                                        if (gMinX !== Infinity) {
+                                            bbox = {
+                                                x: gMinX,
+                                                y: gMinY,
+                                                width: gMaxX - gMinX,
+                                                height: gMaxY - gMinY
+                                            };
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Update overall bounds if we got a valid bbox
+                        if (bbox && bbox.width > 0 && bbox.height > 0 &&
+                            isFinite(bbox.x) && isFinite(bbox.y)) {
                             minX = Math.min(minX, bbox.x);
                             minY = Math.min(minY, bbox.y);
                             maxX = Math.max(maxX, bbox.x + bbox.width);
@@ -2418,40 +2546,73 @@
                             hasValidBounds = true;
                         }
                     } catch (e) {
-                        // Skip elements that can't provide bounding box
+                        console.warn('Error analyzing element:', element.tagName, e);
                         continue;
                     }
                 }
 
-                // If we found valid bounds, return them
-                if (hasValidBounds && minX !== Infinity) {
-                    return {
+                // Clean up temporary elements
+                document.body.removeChild(tempContainer);
+
+                // Return calculated bounds if valid
+                if (hasValidBounds && minX !== Infinity && isFinite(minX) && isFinite(minY)) {
+                    const bounds = {
                         x: minX,
                         y: minY,
                         width: maxX - minX,
                         height: maxY - minY
                     };
+                    console.log('Calculated content bounds:', bounds);
+                    return bounds;
                 }
 
-                // Fallback: try to get the root SVG's bounding box
-                if (typeof svg.getBBox === 'function') {
-                    return svg.getBBox();
+                // Enhanced fallback strategies
+                console.log('Primary bounds calculation failed, trying fallbacks...');
+
+                // Fallback 1: Try root SVG getBBox
+                try {
+                    const rootBbox = svg.getBBox();
+                    if (rootBbox && rootBbox.width > 0 && rootBbox.height > 0) {
+                        console.log('Using root SVG getBBox:', rootBbox);
+                        return rootBbox;
+                    }
+                } catch (e) {
+                    console.warn('Root SVG getBBox failed:', e);
                 }
 
-                // Final fallback: use viewBox or client rect
+                // Fallback 2: Use viewBox if available
                 if (svg.viewBox && svg.viewBox.baseVal) {
                     const vb = svg.viewBox.baseVal;
-                    return {
-                        x: vb.x,
-                        y: vb.y,
-                        width: vb.width,
-                        height: vb.height
-                    };
+                    if (vb.width > 0 && vb.height > 0) {
+                        const viewBoxBounds = {
+                            x: vb.x,
+                            y: vb.y,
+                            width: vb.width,
+                            height: vb.height
+                        };
+                        console.log('Using viewBox bounds:', viewBoxBounds);
+                        return viewBoxBounds;
+                    }
                 }
 
+                // Fallback 3: Use SVG width/height attributes
+                const width = svg.getAttribute('width');
+                const height = svg.getAttribute('height');
+                if (width && height) {
+                    const attrBounds = {
+                        x: 0,
+                        y: 0,
+                        width: parseFloat(width),
+                        height: parseFloat(height)
+                    };
+                    console.log('Using SVG attribute bounds:', attrBounds);
+                    return attrBounds;
+                }
+
+                console.warn('All bounds calculation methods failed');
                 return null;
             } catch (error) {
-                console.warn('Failed to calculate SVG content bounds:', error);
+                console.error('Critical error in calculateSVGContentBounds:', error);
                 return null;
             }
         }
@@ -2465,20 +2626,107 @@
             exportMermaidDiagram(format);
         }
 
+                                                    /**
+                                                     * Auto-fix export content to ensure exports always succeed
+                                                     * Instead of blocking exports, automatically correct any issues
+                                                     */
+                                                    function autoFixExportContent(svg) {
+                                                        const fixes = {
+                                                            applied: [],
+                                                            warnings: [],
+                                                            elementCounts: {}
+                                                        };
+
+                                                        try {
+                                                            // Count different types of elements for informational purposes
+                                                            const elementTypes = ['rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'path', 'text', 'g'];
+                                                            elementTypes.forEach(type => {
+                                                                const elements = svg.querySelectorAll(type);
+                                                                fixes.elementCounts[type] = elements.length;
+                                                            });
+
+                                                            // Auto-fix SVG dimensions if invalid
+                                                            let width = svg.getAttribute('width');
+                                                            let height = svg.getAttribute('height');
+
+                                                            if (!width || !height || width === '0' || height === '0' || width === 'undefined' || height === 'undefined') {
+                                                                // Calculate dimensions from viewBox or bounding box
+                                                                const viewBox = svg.getAttribute('viewBox');
+                                                                if (viewBox) {
+                                                                    const [x, y, w, h] = viewBox.split(' ').map(Number);
+                                                                    width = w || 800;
+                                                                    height = h || 600;
+                                                                } else {
+                                                                    // Try to get bounding box
+                                                                    try {
+                                                                        const bbox = svg.getBBox();
+                                                                        width = bbox.width || 800;
+                                                                        height = bbox.height || 600;
+                                                                    } catch (e) {
+                                                                        // Fallback to default dimensions
+                                                                        width = 800;
+                                                                        height = 600;
+                                                                    }
+                                                                }
+
+                                                                // Apply the corrected dimensions
+                                                                svg.setAttribute('width', width);
+                                                                svg.setAttribute('height', height);
+                                                                fixes.applied.push(`Auto-corrected dimensions to ${width}x${height}`);
+                                                            }
+
+                                                            // Ensure viewBox exists
+                                                            if (!svg.getAttribute('viewBox')) {
+                                                                svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                                                                fixes.applied.push('Added missing viewBox');
+                                                            }
+
+                                                            // Add informational warnings (non-blocking)
+                                                            if (fixes.elementCounts.text === 0 && fixes.elementCounts.g === 0) {
+                                                                fixes.warnings.push('Diagram appears to be empty - this is still exportable');
+                                                            }
+
+                                                            if (fixes.elementCounts.path === 0 && fixes.elementCounts.line === 0) {
+                                                                fixes.warnings.push('No connections found - diagram may only contain nodes');
+                                                            }
+
+                                                            console.log('Export auto-fixes applied:', fixes);
+                                                            return fixes;
+                                                        } catch (error) {
+                                                            console.error('Export auto-fix failed:', error);
+                                                            fixes.warnings.push('Auto-fix failed: ' + error.message);
+                                                            return fixes;
+                                                        }
+                                                    }
+
         function exportMermaidDiagram(format) {
-            const svg = document.querySelector('#mermaidContainer svg');
-            if (!svg) {
+            // Get a clean SVG without zoom/pan transforms for export
+            const cleanSvg = getCleanSVGForExport();
+            if (!cleanSvg) {
                 showError('No diagram to export. Please render a diagram first.');
                 return;
+            }
+
+            // Auto-fix any export issues instead of blocking
+            const fixes = autoFixExportContent(cleanSvg);
+
+            // Show informational messages about fixes applied
+            if (fixes.applied.length > 0) {
+                console.log('Export fixes applied:', fixes.applied);
+                showSuccess(`Export ready! Applied ${fixes.applied.length} auto-fix(es) ✨`);
+            }
+
+            if (fixes.warnings.length > 0) {
+                console.warn('Export warnings (non-blocking):', fixes.warnings);
             }
 
             closeDropdowns();
 
             try {
                 if (format === 'svg') {
-                    exportMermaidSVG(svg);
+                    exportMermaidSVG(cleanSvg);
                 } else if (format === 'png') {
-                    exportMermaidPNG(svg);
+                    exportMermaidPNG(cleanSvg);
                 } else {
                     showError('Unsupported export format: ' + format);
                 }
@@ -2494,7 +2742,8 @@
                 const padding = parseInt(document.getElementById('exportPadding')?.value) || 20;
                 const autoFit = document.getElementById('autoFitContent')?.value === 'true';
 
-                // Clone the SVG to avoid modifying the original
+                // The SVG is already clean (no transforms), so we can work with it directly
+                // Clone it once more to avoid any potential modifications
                 const svgClone = svg.cloneNode(true);
 
                 if (autoFit) {
@@ -2517,13 +2766,7 @@
                     }
                 }
 
-                // Ensure proper XML namespaces
-                if (!svgClone.getAttribute('xmlns')) {
-                    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                }
-                if (!svgClone.getAttribute('xmlns:xlink')) {
-                    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-                }
+                // XML namespaces are already set by getCleanSVGForExport()
 
                 // Get the SVG content
                 const svgData = new XMLSerializer().serializeToString(svgClone);
@@ -2609,7 +2852,7 @@
                     ctx.fillRect(0, 0, finalWidth, finalHeight);
                 }
 
-                // Clone and prepare SVG for high-resolution export
+                // The SVG is already clean (no transforms), prepare it for high-resolution export
                 const svgClone = svg.cloneNode(true);
 
                 // Set explicit dimensions for crisp rendering
@@ -2623,13 +2866,7 @@
                     svgClone.setAttribute('viewBox', `0 0 ${baseWidth} ${baseHeight}`);
                 }
 
-                // Ensure proper XML namespaces
-                if (!svgClone.getAttribute('xmlns')) {
-                    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                }
-                if (!svgClone.getAttribute('xmlns:xlink')) {
-                    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-                }
+                // XML namespaces are already set by getCleanSVGForExport()
 
                 // Add styles for crisp rendering
                 const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
@@ -2710,6 +2947,20 @@
                     showSuccess('Code copied to clipboard! 📝');
                 }).catch(() => {
                     showError('Failed to copy to clipboard.');
+                });
+            } else if (type === 'svg') {
+                // Get clean SVG without zoom/pan transforms
+                const cleanSvg = getCleanSVGForExport();
+                if (!cleanSvg) {
+                    showError('No diagram to copy. Please render a diagram first.');
+                    return;
+                }
+
+                const svgData = new XMLSerializer().serializeToString(cleanSvg);
+                navigator.clipboard.writeText(svgData).then(() => {
+                    showSuccess('SVG copied to clipboard! 📋');
+                }).catch(() => {
+                    showError('Failed to copy SVG to clipboard.');
                 });
             }
         }
@@ -2866,12 +3117,48 @@
             showSuccess(`Theme changed to ${theme}! 🎨`);
         }
 
-        function updateDiagramSettings() {
+                                                            /**
+                                                             * Update range input display values in real-time
+                                                             */
+                                                            function updateRangeDisplay(inputId, unit) {
+                                                                const input = document.getElementById(inputId);
+                                                                const display = document.getElementById(inputId + 'Value');
+                                                                if (input && display) {
+                                                                    display.textContent = input.value + unit;
+                                                                }
+                                                            }
+
+                                                            /**
+                                                             * Update layout and structure settings
+                                                             */
+                                                            function updateLayoutSettings() {
             const nodeSpacing = document.getElementById('nodeSpacing').value;
             const rankSpacing = document.getElementById('rankSpacing').value;
             const curveStyle = document.getElementById('curveStyle').value;
+                                                            const direction = document.getElementById('diagramDirection').value;
 
-            // Update Mermaid configuration
+                                                            // Update range displays
+                                                            updateRangeDisplay('nodeSpacing', 'px');
+                                                            updateRangeDisplay('rankSpacing', 'px');
+
+                                                            // Update diagram direction by modifying the code
+                                                            const codeEditor = document.getElementById('code');
+                                                            let code = codeEditor.value;
+
+                                                            // Update direction in flowchart/graph diagrams
+                                                            if (code.includes('graph ') || code.includes('flowchart ')) {
+                                                                // Replace existing direction or add it
+                                                                code = code.replace(/^(graph|flowchart)\s+(TD|LR|BT|RL|TB)/gm, `$1 ${direction}`);
+
+                                                                // If no direction was found, add it to the first graph/flowchart line
+                                                                if (!code.match(/^(graph|flowchart)\s+(TD|LR|BT|RL|TB)/m)) {
+                                                                    code = code.replace(/^(graph|flowchart)(\s|$)/gm, `$1 ${direction}$2`);
+                                                                }
+
+                                                                codeEditor.value = code;
+                                                            }
+
+                                                            // Update Mermaid configuration for layout
             mermaid.initialize({
                 startOnLoad: false,
                 theme: 'default',
@@ -2886,9 +3173,114 @@
                 }
             });
 
-            // Re-render diagram with new settings
-            renderDiagram();
-            showSuccess('Diagram settings updated! ⚙️');
+                                                            // Re-render diagram with new layout settings
+                                                            renderDiagram();
+                                                                    showSuccess('Layout settings updated! 📐');
+                                                                }
+
+                                                                /**
+                                                                 * Update appearance and visual settings
+                                                                 */
+                                                                function updateAppearanceSettings() {
+                                                                    const fontSize = document.getElementById('fontSize').value;
+                                                                    const lineWidth = document.getElementById('lineWidth').value;
+                                                                    const nodeBorder = document.getElementById('nodeBorder').value;
+                                                                    const cornerRadius = document.getElementById('cornerRadius').value;
+
+                                                                    // Update range displays
+                                                                    updateRangeDisplay('lineWidth', 'px');
+                                                                    updateRangeDisplay('cornerRadius', 'px');
+
+                                                                    // Apply visual settings via CSS custom properties
+                                                                    const root = document.documentElement;
+                                                                    root.style.setProperty('--mermaid-font-size', fontSize + 'px');
+                                                                    root.style.setProperty('--mermaid-line-width', lineWidth + 'px');
+                                                                    root.style.setProperty('--mermaid-border-width', nodeBorder + 'px');
+                                                                    root.style.setProperty('--mermaid-corner-radius', cornerRadius + 'px');
+
+                                                                    // Apply styles directly to the Mermaid container
+                                                                    applyAppearanceStyles(fontSize, lineWidth, nodeBorder, cornerRadius);
+
+                                                                    // Re-render diagram with new appearance settings
+                                                                    renderDiagram();
+                                                                    showSuccess('Appearance settings updated! 🎨');
+                                                                }
+
+                                                                /**
+                                                                 * Apply appearance styles directly to Mermaid SVG elements
+                                                                 */
+                                                                function applyAppearanceStyles(fontSize, lineWidth, nodeBorder, cornerRadius) {
+                                                                    // Create or update the style element for Mermaid customization
+                                                                    let styleElement = document.getElementById('mermaid-custom-styles');
+                                                                    if (!styleElement) {
+                                                                        styleElement = document.createElement('style');
+                                                                        styleElement.id = 'mermaid-custom-styles';
+                                                                        document.head.appendChild(styleElement);
+                                                                    }
+
+                                                                    // Define CSS rules that will apply to Mermaid SVG elements
+                                                                    const customCSS = `
+                /* Mermaid appearance customization */
+                .mermaid svg text {
+                    font-size: ${fontSize}px !important;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+                }
+
+                .mermaid svg .node rect,
+                .mermaid svg .node circle,
+                .mermaid svg .node ellipse,
+                .mermaid svg .node polygon {
+                    stroke-width: ${nodeBorder}px !important;
+                    rx: ${cornerRadius}px !important;
+                    ry: ${cornerRadius}px !important;
+                }
+
+                .mermaid svg .edgePath path,
+                .mermaid svg .flowchart-link {
+                    stroke-width: ${lineWidth}px !important;
+                }
+
+                .mermaid svg .edgeLabel rect {
+                    rx: ${Math.max(cornerRadius - 2, 0)}px !important;
+                    ry: ${Math.max(cornerRadius - 2, 0)}px !important;
+                }
+
+                /* Apply to all diagram types */
+                .mermaid svg .actor,
+                .mermaid svg .boundary,
+                .mermaid svg .control,
+                .mermaid svg .entity,
+                .mermaid svg .database {
+                    stroke-width: ${nodeBorder}px !important;
+                }
+
+                .mermaid svg .messageLine0,
+                .mermaid svg .messageLine1 {
+                    stroke-width: ${lineWidth}px !important;
+                }
+            `;
+
+                                                                    styleElement.textContent = customCSS;
+                                                                }
+
+                                                                /**
+                                                                 * Initialize appearance settings on startup
+                                                                 */
+                                                                function initializeAppearanceSettings() {
+                                                                    // Get current values from the UI
+                                                                    const fontSize = document.getElementById('fontSize').value;
+                                                                    const lineWidth = document.getElementById('lineWidth').value;
+                                                                    const nodeBorder = document.getElementById('nodeBorder').value;
+                                                                    const cornerRadius = document.getElementById('cornerRadius').value;
+
+                                                                    // Apply initial appearance styles
+                                                                    applyAppearanceStyles(fontSize, lineWidth, nodeBorder, cornerRadius);
+
+                                                                    // Update range displays
+                                                                    updateRangeDisplay('lineWidth', 'px');
+                                                                    updateRangeDisplay('cornerRadius', 'px');
+                                                                    updateRangeDisplay('nodeSpacing', 'px');
+                                                                    updateRangeDisplay('rankSpacing', 'px');
         }
 
         function resetSettings() {
@@ -2900,10 +3292,17 @@
             document.querySelector('[data-theme="default"]').classList.add('active');
             document.querySelector('[data-theme="default"]').style.border = '2px solid #3498db';
 
-            // Reset diagram settings
+            // Reset layout settings
+            document.getElementById('diagramDirection').value = 'TD';
             document.getElementById('nodeSpacing').value = 50;
             document.getElementById('rankSpacing').value = 100;
             document.getElementById('curveStyle').value = 'basis';
+
+            // Reset appearance settings
+            document.getElementById('fontSize').value = 14;
+            document.getElementById('lineWidth').value = 2;
+            document.getElementById('nodeBorder').value = 2;
+            document.getElementById('cornerRadius').value = 5;
 
             // Reset export settings
             document.getElementById('pngQuality').value = 2;
@@ -2912,12 +3311,34 @@
             document.getElementById('exportPadding').value = 20;
             document.getElementById('autoFitContent').value = 'true';
 
+            // Update all range displays
+            updateRangeDisplay('nodeSpacing', 'px');
+            updateRangeDisplay('rankSpacing', 'px');
+            updateRangeDisplay('lineWidth', 'px');
+            updateRangeDisplay('cornerRadius', 'px');
+
+            // Reset CSS custom properties
+            const root = document.documentElement;
+            root.style.removeProperty('--mermaid-font-size');
+            root.style.removeProperty('--mermaid-line-width');
+            root.style.removeProperty('--mermaid-border-width');
+            root.style.removeProperty('--mermaid-corner-radius');
+
+            // Remove custom styles
+            const customStyleElement = document.getElementById('mermaid-custom-styles');
+            if (customStyleElement) {
+                customStyleElement.remove();
+            }
+
             // Reinitialize Mermaid with default settings
             initializeMermaid();
 
+            // Re-initialize appearance settings
+            initializeAppearanceSettings();
+
             // Re-render diagram
             renderDiagram();
-            showSuccess('Settings reset to defaults! 🔄');
+            showSuccess('All settings reset to defaults! 🔄');
         }
 
         // ===== URL PARAMETER HANDLING =====
@@ -2967,6 +3388,93 @@
 - All interactions are smooth and responsive`;
             }
         }
+
+                                                /**
+                                                 * Comprehensive export testing function for development/debugging
+                                                 * Tests export functionality at various zoom levels and validates content
+                                                 */
+                                                function testExportFunctionality() {
+                                                    console.log('🧪 Starting comprehensive export functionality test...');
+
+                                                    // Test data - various diagram types
+                                                    const testDiagrams = [
+                                                        {
+                                                            name: 'Simple Flowchart',
+                                                            code: `graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E[End]
+    D --> E`
+                                                        },
+                                                        {
+                                                            name: 'Sequence Diagram',
+                                                            code: `sequenceDiagram
+    participant A as Alice
+    participant B as Bob
+    A->>B: Hello Bob!
+    B-->>A: Hello Alice!
+    Note over A,B: Communication established`
+                                                        }
+                                                    ];
+
+                                                    // Test zoom levels
+                                                    const zoomLevels = [0.5, 1.0, 2.0];
+
+                                                    let testResults = [];
+
+                                                    testDiagrams.forEach((diagram, diagramIndex) => {
+                                                        console.log(`Testing diagram: ${diagram.name}`);
+
+                                                        // Set diagram code
+                                                        document.getElementById('code').value = diagram.code;
+                                                        renderDiagram();
+
+                                                        // Wait for render to complete, then test at different zoom levels
+                                                        setTimeout(() => {
+                                                            zoomLevels.forEach((zoomLevel, zoomIndex) => {
+                                                                console.log(`Testing at zoom level: ${zoomLevel}x`);
+
+                                                                // Set zoom level
+                                                                currentScale = zoomLevel;
+                                                                applyTransform();
+
+                                                                // Test export
+                                                                setTimeout(() => {
+                                                                    const cleanSvg = getCleanSVGForExport();
+                                                                    if (cleanSvg) {
+                                                                        const fixes = autoFixExportContent(cleanSvg);
+                                                                        const bounds = calculateSVGContentBounds(cleanSvg);
+
+                                                                        testResults.push({
+                                                                            diagram: diagram.name,
+                                                                            zoom: zoomLevel,
+                                                                            fixes: fixes,
+                                                                            bounds: bounds,
+                                                                            timestamp: new Date().toISOString()
+                                                                        });
+
+                                                                        console.log(`✅ Test completed for ${diagram.name} at ${zoomLevel}x zoom`);
+
+                                                                        // If this is the last test, show results
+                                                                        if (diagramIndex === testDiagrams.length - 1 && zoomIndex === zoomLevels.length - 1) {
+                                                                            console.log('🎉 All export tests completed!');
+                                                                            console.table(testResults);
+
+                                                                            // Reset to normal state
+                                                                            currentScale = 1.0;
+                                                                            applyTransform();
+                                                                            showSuccess('Export functionality test completed! Check console for results. 🧪');
+                                                                        }
+                                                                    }
+                                                                }, 500);
+                                                            });
+                                                        }, 1000 * diagramIndex + 500);
+                                                    });
+                                                }
+
+                                                // Add test function to window for manual testing
+                                                window.testExportFunctionality = testExportFunctionality;
 
         // Set default content after a short delay to ensure DOM is ready
         setTimeout(() => {
