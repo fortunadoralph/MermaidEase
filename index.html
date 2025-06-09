@@ -3201,7 +3201,10 @@
                                                                     // Apply styles directly to the Mermaid container
                                                                     applyAppearanceStyles(fontSize, lineWidth, nodeBorder, cornerRadius);
 
-                                                                    // Re-render diagram with new appearance settings
+                                                                    // Apply styles immediately to existing diagram without re-render
+                                                                    applyStylesToExistingDiagram(fontSize, lineWidth, nodeBorder, cornerRadius);
+
+                                                                    // Re-render diagram with new appearance settings for full effect
                                                                     renderDiagram();
                                                                     showSuccess('Appearance settings updated! 🎨');
                                                                 }
@@ -3220,32 +3223,111 @@
 
                                                                     // Define CSS rules that will apply to Mermaid SVG elements
                                                                     const customCSS = `
-                /* Mermaid appearance customization */
-                .mermaid svg text {
+                /* Mermaid appearance customization - Font Size for ALL text elements with maximum specificity */
+                #mermaidContainer svg text,
+                #mermaidContainer text,
+                .mermaid svg text,
+                .mermaid text,
+                #mermaidDiagram svg text,
+                #mermaidDiagram text,
+                svg text,
+                div#mermaidContainer svg text,
+                div.mermaid svg text,
+                div#mermaidDiagram svg text,
+                #mermaidContainer svg g text,
+                .mermaid svg g text,
+                #mermaidDiagram svg g text,
+                svg g text,
+                text {
                     font-size: ${fontSize}px !important;
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
                 }
 
+                /* Target specific Mermaid text classes */
+                .nodeLabel,
+                .edgeLabel,
+                .cluster-label,
+                .titleText,
+                .actor-label,
+                .messageText,
+                .loopText,
+                .noteText,
+                .labelText,
+                .classTitle,
+                .classText,
+                .stateText,
+                .er-entityNameText,
+                .er-attributeText {
+                    font-size: ${fontSize}px !important;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+                }
+
+                /* Ultra-specific override for all text in Mermaid containers */
+                #mermaidContainer * text,
+                .mermaid * text,
+                #mermaidDiagram * text,
+                div[id*="mermaid"] text,
+                svg[id*="mermaid"] text {
+                    font-size: ${fontSize}px !important;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+                }
+
+                /* Force override any inline styles */
+                #mermaidContainer [style*="font-size"],
+                .mermaid [style*="font-size"],
+                #mermaidDiagram [style*="font-size"] {
+                    font-size: ${fontSize}px !important;
+                }
+
+                /* Node borders for flowcharts and general diagrams */
+                #mermaidContainer svg rect,
+                #mermaidContainer svg circle,
+                #mermaidContainer svg ellipse,
+                #mermaidContainer svg polygon,
+                #mermaidContainer svg path.node,
+                .mermaid svg rect,
+                .mermaid svg circle,
+                .mermaid svg ellipse,
+                .mermaid svg polygon,
                 .mermaid svg .node rect,
                 .mermaid svg .node circle,
                 .mermaid svg .node ellipse,
-                .mermaid svg .node polygon {
+                .mermaid svg .node polygon,
+                .mermaid svg .node path,
+                #mermaidDiagram svg rect,
+                #mermaidDiagram svg circle,
+                #mermaidDiagram svg ellipse,
+                #mermaidDiagram svg polygon,
+                svg rect,
+                svg circle,
+                svg ellipse,
+                svg polygon {
                     stroke-width: ${nodeBorder}px !important;
                     rx: ${cornerRadius}px !important;
                     ry: ${cornerRadius}px !important;
                 }
 
+                /* Edge/line styling */
+                #mermaidContainer svg .edgePath path,
+                #mermaidContainer svg .flowchart-link,
                 .mermaid svg .edgePath path,
                 .mermaid svg .flowchart-link {
                     stroke-width: ${lineWidth}px !important;
                 }
 
+                /* Edge labels */
+                #mermaidContainer svg .edgeLabel rect,
                 .mermaid svg .edgeLabel rect {
                     rx: ${Math.max(cornerRadius - 2, 0)}px !important;
                     ry: ${Math.max(cornerRadius - 2, 0)}px !important;
                 }
 
-                /* Apply to all diagram types */
+                /* Sequence diagram elements */
+                #mermaidContainer svg .actor,
+                #mermaidContainer svg .boundary,
+                #mermaidContainer svg .control,
+                #mermaidContainer svg .entity,
+                #mermaidContainer svg .database,
                 .mermaid svg .actor,
                 .mermaid svg .boundary,
                 .mermaid svg .control,
@@ -3254,14 +3336,177 @@
                     stroke-width: ${nodeBorder}px !important;
                 }
 
+                /* Sequence diagram message lines */
+                #mermaidContainer svg .messageLine0,
+                #mermaidContainer svg .messageLine1,
                 .mermaid svg .messageLine0,
                 .mermaid svg .messageLine1 {
                     stroke-width: ${lineWidth}px !important;
                 }
+
+                /* Class diagram elements */
+                #mermaidContainer svg .classBox,
+                .mermaid svg .classBox {
+                    stroke-width: ${nodeBorder}px !important;
+                    rx: ${cornerRadius}px !important;
+                    ry: ${cornerRadius}px !important;
+                }
+
+                /* State diagram elements */
+                #mermaidContainer svg .state-start,
+                #mermaidContainer svg .state-end,
+                #mermaidContainer svg .stateBox,
+                .mermaid svg .state-start,
+                .mermaid svg .state-end,
+                .mermaid svg .stateBox {
+                    stroke-width: ${nodeBorder}px !important;
+                    rx: ${cornerRadius}px !important;
+                    ry: ${cornerRadius}px !important;
+                }
+
+                /* ER diagram elements */
+                #mermaidContainer svg .er,
+                #mermaidContainer svg .entityBox,
+                .mermaid svg .er,
+                .mermaid svg .entityBox {
+                    stroke-width: ${nodeBorder}px !important;
+                    rx: ${cornerRadius}px !important;
+                    ry: ${cornerRadius}px !important;
+                }
             `;
 
                                                                     styleElement.textContent = customCSS;
-                                                                }
+
+        // Set up MutationObserver to catch dynamically added text elements
+        setupFontSizeObserver(fontSize);
+    }
+
+    /**
+     * Set up MutationObserver to apply font size to dynamically added text elements
+     */
+    function setupFontSizeObserver(fontSize) {
+        const mermaidContainer = document.getElementById('mermaidContainer');
+        if (!mermaidContainer) return;
+
+        // Disconnect any existing observer
+        if (window.fontSizeObserver) {
+            window.fontSizeObserver.disconnect();
+        }
+
+        // Create new observer
+        window.fontSizeObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Apply font size to any text elements
+                        if (node.tagName === 'text') {
+                            node.style.setProperty('font-size', fontSize + 'px', 'important');
+                            node.setAttribute('font-size', fontSize);
+                        }
+                        // Also check child text elements
+                        const textElements = node.querySelectorAll('text');
+                        textElements.forEach(text => {
+                            text.style.setProperty('font-size', fontSize + 'px', 'important');
+                            text.setAttribute('font-size', fontSize);
+                        });
+                    }
+                });
+            });
+        });
+
+        // Start observing
+        window.fontSizeObserver.observe(mermaidContainer, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    /**
+     * Apply styles immediately to existing diagram elements without re-rendering
+     */
+    function applyStylesToExistingDiagram(fontSize, lineWidth, nodeBorder, cornerRadius) {
+        const mermaidContainer = document.getElementById('mermaidContainer');
+        if (!mermaidContainer) return;
+
+        // Apply font size to all text elements immediately with aggressive targeting
+        const textSelectors = [
+            'text', 'svg text', 'g text',
+            '.nodeLabel', '.edgeLabel', '.cluster-label', '.titleText',
+            '.actor-label', '.messageText', '.loopText', '.noteText',
+            '.labelText', '.classTitle', '.classText', '.stateText',
+            '.er-entityNameText', '.er-attributeText'
+        ];
+
+        textSelectors.forEach(selector => {
+            const textElements = mermaidContainer.querySelectorAll(selector);
+            textElements.forEach(text => {
+                // Apply multiple methods to ensure font size changes
+                text.style.fontSize = fontSize + 'px';
+                text.style.setProperty('font-size', fontSize + 'px', 'important');
+                text.style.fontFamily = 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
+                text.setAttribute('font-size', fontSize);
+
+                // Force style recalculation
+                text.style.display = 'none';
+                text.offsetHeight; // Trigger reflow
+                text.style.display = '';
+
+                // Debug logging
+                console.log(`Applied font-size ${fontSize}px to text element:`, text.textContent, text);
+            });
+        });
+
+        // Additional aggressive approach - remove any existing font-size styles first
+        const allTextElements = mermaidContainer.querySelectorAll('*');
+        allTextElements.forEach(element => {
+            if (element.tagName === 'text' || element.textContent.trim()) {
+                // Remove any existing font-size from style attribute
+                if (element.style.fontSize) {
+                    element.style.removeProperty('font-size');
+                }
+                // Apply new font size
+                if (element.tagName === 'text') {
+                    element.style.setProperty('font-size', fontSize + 'px', 'important');
+                    element.setAttribute('font-size', fontSize);
+                }
+            }
+        });
+
+        // Apply node border styles to all shape elements immediately
+        const shapeSelectors = [
+            'rect', 'circle', 'ellipse', 'polygon', 'path.node',
+            '.node rect', '.node circle', '.node ellipse', '.node polygon',
+            '.actor', '.boundary', '.control', '.entity', '.database',
+            '.classBox', '.state-start', '.state-end', '.stateBox',
+            '.er', '.entityBox'
+        ];
+
+        shapeSelectors.forEach(selector => {
+            const elements = mermaidContainer.querySelectorAll(selector);
+            elements.forEach(element => {
+                element.style.strokeWidth = nodeBorder + 'px';
+                element.setAttribute('stroke-width', nodeBorder);
+                if (element.tagName === 'rect' || element.tagName === 'ellipse') {
+                    element.style.rx = cornerRadius + 'px';
+                    element.style.ry = cornerRadius + 'px';
+                    element.setAttribute('rx', cornerRadius);
+                    element.setAttribute('ry', cornerRadius);
+                }
+            });
+        });
+
+        // Apply line width to edge elements immediately
+        const lineSelectors = [
+            '.edgePath path', '.flowchart-link', '.messageLine0', '.messageLine1'
+        ];
+
+        lineSelectors.forEach(selector => {
+            const elements = mermaidContainer.querySelectorAll(selector);
+            elements.forEach(element => {
+                element.style.strokeWidth = lineWidth + 'px';
+            });
+        });
+                                                                                                    }
 
                                                                 /**
                                                                  * Initialize appearance settings on startup
