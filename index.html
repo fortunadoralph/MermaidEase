@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,8 +21,8 @@
             --node-border: #2c3e50;
             --edge-color: #3498db;
             --header-bg: #f1f1f1;
-            --shadow: 0 4px 12px rgba(0,0,0,0.08);
-            --shadow-hover: 0 6px 16px rgba(0,0,0,0.12);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
 
         * {
@@ -97,7 +98,9 @@
         }
 
         @media (min-width: 768px) {
-            .editor-panel, .preview-panel {
+
+            .editor-panel,
+            .preview-panel {
                 min-height: calc(100vh - 32px);
             }
         }
@@ -433,8 +436,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .error-message {
@@ -812,6 +820,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Editor Panel -->
@@ -892,7 +901,8 @@
                 <div class="grid-overlay" id="gridOverlay"></div>
 
                 <!-- Mermaid Diagram Container -->
-                <div id="mermaidContainer" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: auto; background: white; border-radius: 10px;">
+                <div id="mermaidContainer"
+                    style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: auto; background: white; border-radius: 10px;">
                     <div class="mermaid" id="mermaidDiagram" style="max-width: 100%; max-height: 100%;"></div>
                 </div>
 
@@ -919,27 +929,45 @@
             <div class="settings-panel" id="settingsPanel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 style="margin: 0; color: var(--primary-color);">⚙️ Settings</h3>
-                    <button onclick="toggleSettings()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #666; padding: 4px;">✕</button>
+                    <button onclick="toggleSettings()"
+                        style="background: none; border: none; font-size: 18px; cursor: pointer; color: #666; padding: 4px;">✕</button>
                 </div>
                 <div class="settings-group">
                     <h4>🎨 Theme</h4>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <div style="width: 24px; height: 24px; background: #2c3e50; border-radius: 50%; cursor: pointer; border: 2px solid transparent;" onclick="changeTheme('default')" class="theme-btn active" data-theme="default"></div>
-                        <div style="width: 24px; height: 24px; background: #3498db; border-radius: 50%; cursor: pointer; border: 2px solid transparent;" onclick="changeTheme('blue')" class="theme-btn" data-theme="blue"></div>
-                        <div style="width: 24px; height: 24px; background: #e74c3c; border-radius: 50%; cursor: pointer; border: 2px solid transparent;" onclick="changeTheme('red')" class="theme-btn" data-theme="red"></div>
-                        <div style="width: 24px; height: 24px; background: #2ecc71; border-radius: 50%; cursor: pointer; border: 2px solid transparent;" onclick="changeTheme('green')" class="theme-btn" data-theme="green"></div>
+                        <div style="width: 24px; height: 24px; background: #2c3e50; border-radius: 50%; cursor: pointer; border: 2px solid transparent;"
+                            onclick="changeTheme('default')" class="theme-btn active" data-theme="default"></div>
+                        <div style="width: 24px; height: 24px; background: #3498db; border-radius: 50%; cursor: pointer; border: 2px solid transparent;"
+                            onclick="changeTheme('blue')" class="theme-btn" data-theme="blue"></div>
+                        <div style="width: 24px; height: 24px; background: #e74c3c; border-radius: 50%; cursor: pointer; border: 2px solid transparent;"
+                            onclick="changeTheme('red')" class="theme-btn" data-theme="red"></div>
+                        <div style="width: 24px; height: 24px; background: #2ecc71; border-radius: 50%; cursor: pointer; border: 2px solid transparent;"
+                            onclick="changeTheme('green')" class="theme-btn" data-theme="green"></div>
                     </div>
                 </div>
 
                 <div class="settings-group">
                     <h4>🔧 Diagram Settings</h4>
                     <div class="setting-item">
+                        <label>Direction:</label>
+                        <select id="diagramDirection" onchange="updateDiagramSettings()">
+                            <option value="TD">Top to Bottom</option>
+                            <option value="LR">Left to Right</option>
+                            <option value="BT">Bottom to Top</option>
+                            <option value="RL">Right to Left</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
                         <label>Node Spacing:</label>
-                        <input type="range" min="30" max="100" value="50" id="nodeSpacing" onchange="updateDiagramSettings()">
+                        <input type="range" min="30" max="100" value="50" id="nodeSpacing"
+                            onchange="updateDiagramSettings()">
+                        <span id="nodeSpacingValue">50px</span>
                     </div>
                     <div class="setting-item">
                         <label>Rank Spacing:</label>
-                        <input type="range" min="50" max="150" value="100" id="rankSpacing" onchange="updateDiagramSettings()">
+                        <input type="range" min="50" max="150" value="100" id="rankSpacing"
+                            onchange="updateDiagramSettings()">
+                        <span id="rankSpacingValue">100px</span>
                     </div>
                     <div class="setting-item">
                         <label>Curve Style:</label>
@@ -947,7 +975,40 @@
                             <option value="basis">Curved</option>
                             <option value="linear">Straight</option>
                             <option value="step">Stepped</option>
+                            <option value="cardinal">Cardinal</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h4>🎨 Visual Settings</h4>
+                    <div class="setting-item">
+                        <label>Font Size:</label>
+                        <select id="fontSize" onchange="updateDiagramSettings()">
+                            <option value="12">Small (12px)</option>
+                            <option value="14" selected>Medium (14px)</option>
+                            <option value="16">Large (16px)</option>
+                            <option value="18">Extra Large (18px)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Line Width:</label>
+                        <input type="range" min="1" max="5" value="2" id="lineWidth" onchange="updateDiagramSettings()">
+                        <span id="lineWidthValue">2px</span>
+                    </div>
+                    <div class="setting-item">
+                        <label>Node Border:</label>
+                        <select id="nodeBorder" onchange="updateDiagramSettings()">
+                            <option value="1">Thin (1px)</option>
+                            <option value="2" selected>Medium (2px)</option>
+                            <option value="3">Thick (3px)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Corner Radius:</label>
+                        <input type="range" min="0" max="15" value="5" id="cornerRadius"
+                            onchange="updateDiagramSettings()">
+                        <span id="cornerRadiusValue">5px</span>
                     </div>
                 </div>
 
@@ -974,6 +1035,22 @@
                         <select id="exportFormat">
                             <option value="png">PNG Image</option>
                             <option value="svg">SVG Vector</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Padding:</label>
+                        <select id="exportPadding">
+                            <option value="10">Minimal (10px)</option>
+                            <option value="20" selected>Standard (20px)</option>
+                            <option value="40">Generous (40px)</option>
+                            <option value="60">Extra (60px)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Auto-fit Content:</label>
+                        <select id="autoFitContent">
+                            <option value="true" selected>Yes</option>
+                            <option value="false">No</option>
                         </select>
                     </div>
                 </div>
@@ -1074,7 +1151,8 @@
     B -->|No| D[Action 2]
     C --> E[End]
     D --> E</code></pre>
-                            <button onclick="copyToEditor('flowchart-basic')" class="copy-btn">📋 Copy to Editor</button>
+                            <button onclick="copyToEditor('flowchart-basic')" class="copy-btn">📋 Copy to
+                                Editor</button>
                         </div>
 
                         <div class="syntax-section">
@@ -1085,7 +1163,8 @@
     C --> D{Diamond}
     D --> E>Flag]
     E --> F[/Parallelogram/]</code></pre>
-                            <button onclick="copyToEditor('flowchart-shapes')" class="copy-btn">📋 Copy to Editor</button>
+                            <button onclick="copyToEditor('flowchart-shapes')" class="copy-btn">📋 Copy to
+                                Editor</button>
                         </div>
 
                         <div class="syntax-section">
@@ -1097,7 +1176,8 @@
     style A fill:#e1f5fe
     style B fill:#fff3e0
     style C fill:#e8f5e8</code></pre>
-                            <button onclick="copyToEditor('flowchart-styling')" class="copy-btn">📋 Copy to Editor</button>
+                            <button onclick="copyToEditor('flowchart-styling')" class="copy-btn">📋 Copy to
+                                Editor</button>
                         </div>
                     </div>
 
@@ -1129,7 +1209,8 @@
     deactivate S
 
     Note over U,S: User is now logged in</code></pre>
-                            <button onclick="copyToEditor('sequence-advanced')" class="copy-btn">📋 Copy to Editor</button>
+                            <button onclick="copyToEditor('sequence-advanced')" class="copy-btn">📋 Copy to
+                                Editor</button>
                         </div>
                     </div>
 
@@ -1278,6 +1359,16 @@
         let currentDiagramHash = '';
         let mermaidInitialized = false;
 
+        // Mouse interaction state
+        let isDragging = false;
+        let lastMousePos = { x: 0, y: 0 };
+        let dragStartPos = { x: 0, y: 0 };
+
+        // Zoom limits
+        const MIN_ZOOM = 0.1;
+        const MAX_ZOOM = 5.0;
+        const ZOOM_STEP = 1.2;
+
 
 
 
@@ -1303,7 +1394,7 @@
 
 
         // ===== INITIALIZATION =====
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', function () {
             initializeApp();
         });
 
@@ -1381,7 +1472,7 @@
             document.addEventListener('click', closeDropdowns);
 
             // Tutorial modal event listeners
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
                     hideTutorial();
                 }
@@ -1390,12 +1481,37 @@
             // Close tutorial when clicking outside content
             const tutorialModal = document.getElementById('tutorialModal');
             if (tutorialModal) {
-                tutorialModal.addEventListener('click', function(e) {
+                tutorialModal.addEventListener('click', function (e) {
                     if (e.target === this) {
                         hideTutorial();
                     }
                 });
             }
+
+            // Setup mouse interaction for preview panel
+            setupMouseInteractions();
+        }
+
+        function setupMouseInteractions() {
+            const previewContent = document.getElementById('previewContent');
+            const mermaidContainer = document.getElementById('mermaidContainer');
+
+            if (!previewContent || !mermaidContainer) return;
+
+            // Mouse wheel zoom
+            previewContent.addEventListener('wheel', handleMouseWheel, { passive: false });
+
+            // Mouse drag for panning
+            mermaidContainer.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+
+            // Prevent context menu on right click in preview area
+            previewContent.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Prevent text selection during drag
+            mermaidContainer.style.userSelect = 'none';
+            mermaidContainer.style.webkitUserSelect = 'none';
         }
 
         // ===== AUTO-SAVE & STORAGE =====
@@ -1552,18 +1668,82 @@
             }
         }
 
-        // ===== ZOOM AND VIEW CONTROLS =====
-        function zoomIn() {
-            if (currentScale < 5) {
-                currentScale *= 1.2;
+        // ===== MOUSE INTERACTION HANDLERS =====
+        function handleMouseWheel(e) {
+            e.preventDefault();
+
+            const delta = e.deltaY > 0 ? -1 : 1;
+            const zoomFactor = Math.pow(ZOOM_STEP, delta * 0.1);
+            const newScale = currentScale * zoomFactor;
+
+            // Apply zoom limits
+            if (newScale >= MIN_ZOOM && newScale <= MAX_ZOOM) {
+                // Get mouse position relative to the container
+                const rect = e.currentTarget.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left - rect.width / 2;
+                const mouseY = e.clientY - rect.top - rect.height / 2;
+
+                // Adjust pan offset to zoom towards mouse position
+                panOffset.x = mouseX - (mouseX - panOffset.x) * zoomFactor;
+                panOffset.y = mouseY - (mouseY - panOffset.y) * zoomFactor;
+
+                currentScale = newScale;
                 applyTransform();
             }
         }
 
-        function zoomOut() {
-            if (currentScale > 0.2) {
-                currentScale /= 1.2;
+        function handleMouseDown(e) {
+            if (e.button === 0) { // Left mouse button
+                isDragging = true;
+                dragStartPos = { x: e.clientX, y: e.clientY };
+                lastMousePos = { x: e.clientX, y: e.clientY };
+
+                // Change cursor to grabbing
+                e.currentTarget.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMousePos.x;
+                const deltaY = e.clientY - lastMousePos.y;
+
+                panOffset.x += deltaX;
+                panOffset.y += deltaY;
+
+                lastMousePos = { x: e.clientX, y: e.clientY };
                 applyTransform();
+                e.preventDefault();
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (isDragging) {
+                isDragging = false;
+
+                // Reset cursor
+                const mermaidContainer = document.getElementById('mermaidContainer');
+                if (mermaidContainer) {
+                    mermaidContainer.style.cursor = currentScale > 1 ? 'grab' : 'default';
+                }
+            }
+        }
+
+        // ===== ZOOM AND VIEW CONTROLS =====
+        function zoomIn() {
+            if (currentScale < MAX_ZOOM) {
+                currentScale *= ZOOM_STEP;
+                applyTransform();
+                updateCursor();
+            }
+        }
+
+        function zoomOut() {
+            if (currentScale > MIN_ZOOM) {
+                currentScale /= ZOOM_STEP;
+                applyTransform();
+                updateCursor();
             }
         }
 
@@ -1571,6 +1751,14 @@
             currentScale = 1;
             panOffset = { x: 0, y: 0 };
             applyTransform();
+            updateCursor();
+        }
+
+        function updateCursor() {
+            const mermaidContainer = document.getElementById('mermaidContainer');
+            if (mermaidContainer) {
+                mermaidContainer.style.cursor = currentScale > 1 ? 'grab' : 'default';
+            }
         }
 
         function updateZoomInfo() {
@@ -1676,11 +1864,11 @@
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.mmd,.txt';
-            input.onchange = function(e) {
+            input.onchange = function (e) {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         document.getElementById('code').value = e.target.result;
                         renderDiagram();
                         showSuccess('File loaded successfully! 📂');
@@ -2185,6 +2373,89 @@
         }
 
         // ===== EXPORT & SHARING =====
+
+        /**
+         * Calculate the actual content bounds of an SVG element
+         * This ensures we capture all visible content, not just the viewBox
+         */
+        function calculateSVGContentBounds(svg) {
+            try {
+                // Get all child elements that have actual content
+                const allElements = svg.querySelectorAll('*');
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                let hasValidBounds = false;
+
+                // Iterate through all elements to find the actual content bounds
+                for (const element of allElements) {
+                    try {
+                        // Skip elements that don't contribute to visual bounds
+                        if (element.tagName === 'defs' || element.tagName === 'style' ||
+                            element.tagName === 'title' || element.tagName === 'desc') {
+                            continue;
+                        }
+
+                        // Try to get bounding box
+                        let bbox;
+                        if (typeof element.getBBox === 'function') {
+                            bbox = element.getBBox();
+                        } else if (typeof element.getBoundingClientRect === 'function') {
+                            const rect = element.getBoundingClientRect();
+                            const svgRect = svg.getBoundingClientRect();
+                            bbox = {
+                                x: rect.left - svgRect.left,
+                                y: rect.top - svgRect.top,
+                                width: rect.width,
+                                height: rect.height
+                            };
+                        }
+
+                        // Update bounds if we got a valid bbox
+                        if (bbox && bbox.width > 0 && bbox.height > 0) {
+                            minX = Math.min(minX, bbox.x);
+                            minY = Math.min(minY, bbox.y);
+                            maxX = Math.max(maxX, bbox.x + bbox.width);
+                            maxY = Math.max(maxY, bbox.y + bbox.height);
+                            hasValidBounds = true;
+                        }
+                    } catch (e) {
+                        // Skip elements that can't provide bounding box
+                        continue;
+                    }
+                }
+
+                // If we found valid bounds, return them
+                if (hasValidBounds && minX !== Infinity) {
+                    return {
+                        x: minX,
+                        y: minY,
+                        width: maxX - minX,
+                        height: maxY - minY
+                    };
+                }
+
+                // Fallback: try to get the root SVG's bounding box
+                if (typeof svg.getBBox === 'function') {
+                    return svg.getBBox();
+                }
+
+                // Final fallback: use viewBox or client rect
+                if (svg.viewBox && svg.viewBox.baseVal) {
+                    const vb = svg.viewBox.baseVal;
+                    return {
+                        x: vb.x,
+                        y: vb.y,
+                        width: vb.width,
+                        height: vb.height
+                    };
+                }
+
+                return null;
+            } catch (error) {
+                console.warn('Failed to calculate SVG content bounds:', error);
+                return null;
+            }
+        }
+
         function exportDiagram(format) {
             exportMermaidDiagram(format);
         }
@@ -2219,8 +2490,40 @@
 
         function exportMermaidSVG(svg) {
             try {
+                // Get export settings
+                const padding = parseInt(document.getElementById('exportPadding')?.value) || 20;
+                const autoFit = document.getElementById('autoFitContent')?.value === 'true';
+
                 // Clone the SVG to avoid modifying the original
                 const svgClone = svg.cloneNode(true);
+
+                if (autoFit) {
+                    // Calculate the actual content bounds
+                    const contentBounds = calculateSVGContentBounds(svg);
+
+                    if (contentBounds) {
+                        // Add padding to the bounds
+                        const paddedBounds = {
+                            x: contentBounds.x - padding,
+                            y: contentBounds.y - padding,
+                            width: contentBounds.width + (padding * 2),
+                            height: contentBounds.height + (padding * 2)
+                        };
+
+                        // Update the SVG clone with the new viewBox and dimensions
+                        svgClone.setAttribute('viewBox', `${paddedBounds.x} ${paddedBounds.y} ${paddedBounds.width} ${paddedBounds.height}`);
+                        svgClone.setAttribute('width', paddedBounds.width);
+                        svgClone.setAttribute('height', paddedBounds.height);
+                    }
+                }
+
+                // Ensure proper XML namespaces
+                if (!svgClone.getAttribute('xmlns')) {
+                    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+                if (!svgClone.getAttribute('xmlns:xlink')) {
+                    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                }
 
                 // Get the SVG content
                 const svgData = new XMLSerializer().serializeToString(svgClone);
@@ -2228,13 +2531,14 @@
 
                 // Create download link
                 const link = document.createElement('a');
-                link.download = 'mermaid-diagram.svg';
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                link.download = `mermaid-diagram-${timestamp}.svg`;
                 link.href = URL.createObjectURL(blob);
                 link.click();
 
                 // Clean up
                 URL.revokeObjectURL(link.href);
-                showSuccess('Diagram exported as SVG! 📄');
+                showSuccess('Complete diagram exported as SVG! 📄');
             } catch (error) {
                 showError('Failed to export SVG: ' + error.message);
                 console.error('SVG export error:', error);
@@ -2248,14 +2552,35 @@
                 // Get export settings
                 const scaleFactor = parseInt(document.getElementById('pngQuality')?.value) || 2;
                 const background = document.getElementById('exportBackground')?.value || 'white';
+                const padding = parseInt(document.getElementById('exportPadding')?.value) || 20;
+                const autoFit = document.getElementById('autoFitContent')?.value === 'true';
 
-                // Get SVG dimensions - use actual SVG dimensions, not bounding rect
-                const svgWidth = svg.viewBox?.baseVal?.width || svg.width?.baseVal?.value || svg.getBoundingClientRect().width;
-                const svgHeight = svg.viewBox?.baseVal?.height || svg.height?.baseVal?.value || svg.getBoundingClientRect().height;
+                let baseWidth, baseHeight, viewBoxX = 0, viewBoxY = 0;
+
+                if (autoFit) {
+                    // Calculate the actual content bounds for accurate sizing
+                    const contentBounds = calculateSVGContentBounds(svg);
+
+                    if (contentBounds) {
+                        // Use content bounds with padding
+                        baseWidth = contentBounds.width + (padding * 2);
+                        baseHeight = contentBounds.height + (padding * 2);
+                        viewBoxX = contentBounds.x - padding;
+                        viewBoxY = contentBounds.y - padding;
+                    } else {
+                        // Fallback to original method
+                        baseWidth = svg.viewBox?.baseVal?.width || svg.width?.baseVal?.value || svg.getBoundingClientRect().width;
+                        baseHeight = svg.viewBox?.baseVal?.height || svg.height?.baseVal?.value || svg.getBoundingClientRect().height;
+                    }
+                } else {
+                    // Use original SVG dimensions
+                    baseWidth = svg.viewBox?.baseVal?.width || svg.width?.baseVal?.value || svg.getBoundingClientRect().width;
+                    baseHeight = svg.viewBox?.baseVal?.height || svg.height?.baseVal?.value || svg.getBoundingClientRect().height;
+                }
 
                 // Ensure minimum dimensions for quality
-                const baseWidth = Math.max(svgWidth, 800);
-                const baseHeight = Math.max(svgHeight, 600);
+                baseWidth = Math.max(baseWidth, 400);
+                baseHeight = Math.max(baseHeight, 300);
 
                 // Calculate high-resolution dimensions
                 const finalWidth = baseWidth * scaleFactor;
@@ -2290,7 +2615,13 @@
                 // Set explicit dimensions for crisp rendering
                 svgClone.setAttribute('width', finalWidth);
                 svgClone.setAttribute('height', finalHeight);
-                svgClone.setAttribute('viewBox', `0 0 ${baseWidth} ${baseHeight}`);
+
+                // Set viewBox to capture the correct content area
+                if (autoFit && viewBoxX !== undefined && viewBoxY !== undefined) {
+                    svgClone.setAttribute('viewBox', `${viewBoxX} ${viewBoxY} ${baseWidth} ${baseHeight}`);
+                } else {
+                    svgClone.setAttribute('viewBox', `0 0 ${baseWidth} ${baseHeight}`);
+                }
 
                 // Ensure proper XML namespaces
                 if (!svgClone.getAttribute('xmlns')) {
@@ -2317,13 +2648,13 @@
                 const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
 
                 const img = new Image();
-                img.onload = function() {
+                img.onload = function () {
                     try {
                         // Draw at full resolution for maximum quality
                         ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
 
                         // Convert to PNG with maximum quality
-                        canvas.toBlob(function(blob) {
+                        canvas.toBlob(function (blob) {
                             showLoading(false);
 
                             if (blob) {
@@ -2341,7 +2672,7 @@
 
                                 // Clean up
                                 URL.revokeObjectURL(link.href);
-                                showSuccess(`High-quality PNG exported! (${finalWidth}×${finalHeight}, ${fileSize}MB) 🖼️`);
+                                showSuccess(`Complete diagram exported as PNG! (${finalWidth}×${finalHeight}, ${fileSize}MB) 🖼️`);
                             } else {
                                 showError('Failed to create PNG file');
                             }
@@ -2354,7 +2685,7 @@
                     }
                 };
 
-                img.onerror = function(error) {
+                img.onerror = function (error) {
                     showLoading(false);
                     console.error('Image load error:', error);
                     showError('Failed to load SVG for PNG conversion. Try a simpler diagram or different export format.');
@@ -2412,7 +2743,7 @@
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 document.getElementById('code').value = e.target.result;
                 renderDiagram();
                 showSuccess(`File "${file.name}" imported successfully! 📁`);
@@ -2578,6 +2909,8 @@
             document.getElementById('pngQuality').value = 2;
             document.getElementById('exportBackground').value = 'white';
             document.getElementById('exportFormat').value = 'png';
+            document.getElementById('exportPadding').value = 20;
+            document.getElementById('autoFitContent').value = 'true';
 
             // Reinitialize Mermaid with default settings
             initializeMermaid();
@@ -2605,7 +2938,7 @@
         }
 
         // Load from URL on page load
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', function () {
             // Small delay to ensure other initialization is complete
             setTimeout(loadFromURL, 100);
         });
@@ -2641,4 +2974,5 @@
         }, 200);
     </script>
 </body>
+
 </html>
