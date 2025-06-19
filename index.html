@@ -2419,6 +2419,9 @@
                 if (originalWidth) cleanSvg.setAttribute('width', originalWidth);
                 if (originalHeight) cleanSvg.setAttribute('height', originalHeight);
 
+                // Embed comprehensive styles for text rendering consistency
+                embedTextRenderingStyles(cleanSvg);
+
                 // Validate that the clean SVG has content
                 const hasContent = cleanSvg.children.length > 0 || cleanSvg.textContent.trim().length > 0;
                 if (!hasContent) {
@@ -2428,6 +2431,233 @@
                 console.log('Clean SVG created successfully with', cleanSvg.children.length, 'child elements');
                 return cleanSvg;
             }
+
+                                                /**
+                                                 * Embed comprehensive text rendering styles into SVG for export consistency
+                                                 * This ensures exported images match the preview text rendering exactly
+                                                 */
+                                                function embedTextRenderingStyles(svg) {
+                                                    console.log('Embedding text rendering styles for export...');
+
+                                                    // Get current style settings from the UI or defaults
+                                                    const fontSize = document.getElementById('fontSize')?.value || '14';
+                                                    const fontFamily = 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
+
+                                                    // Create comprehensive style element for text rendering
+                                                    const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                                                    styleElement.setAttribute('type', 'text/css');
+
+                                                    // Comprehensive CSS for text rendering consistency
+                                                    const textRenderingCSS = `
+                /* High-quality text rendering */
+                * {
+                    text-rendering: geometricPrecision;
+                    shape-rendering: geometricPrecision;
+                    image-rendering: optimizeQuality;
+                }
+
+                /* Comprehensive font styling for all text elements */
+                text, tspan, textPath {
+                    font-family: ${fontFamily} !important;
+                    font-size: ${fontSize}px !important;
+                    font-weight: normal !important;
+                    font-style: normal !important;
+                    text-anchor: inherit !important;
+                    dominant-baseline: inherit !important;
+                }
+
+                /* Specific Mermaid text element classes */
+                .nodeLabel, .edgeLabel, .cluster-label, .titleText,
+                .actor-label, .messageText, .loopText, .noteText,
+                .labelText, .classTitle, .classText, .stateText,
+                .er-entityNameText, .er-attributeText {
+                    font-family: ${fontFamily} !important;
+                    font-size: ${fontSize}px !important;
+                }
+
+                /* Ensure consistent text positioning */
+                text[text-anchor="start"] { text-anchor: start !important; }
+                text[text-anchor="middle"] { text-anchor: middle !important; }
+                text[text-anchor="end"] { text-anchor: end !important; }
+
+                /* Preserve text baseline alignment */
+                text[dominant-baseline="auto"] { dominant-baseline: auto !important; }
+                text[dominant-baseline="middle"] { dominant-baseline: middle !important; }
+                text[dominant-baseline="central"] { dominant-baseline: central !important; }
+                text[dominant-baseline="hanging"] { dominant-baseline: hanging !important; }
+            `;
+
+                                                    styleElement.textContent = textRenderingCSS;
+
+                                                    // Insert style element at the beginning of SVG
+                                                    if (svg.firstChild) {
+                                                        svg.insertBefore(styleElement, svg.firstChild);
+                                                    } else {
+                                                        svg.appendChild(styleElement);
+                                                    }
+
+                                                    // Apply inline styles to all text elements for maximum compatibility
+                                                    applyInlineTextStyles(svg, fontSize, fontFamily);
+
+                                                    console.log('Text rendering styles embedded successfully');
+                                                }
+
+                                                /**
+                                                 * Apply inline styles to all text elements for maximum export compatibility
+                                                 * This ensures text styling is preserved even when CSS is not fully supported
+                                                 */
+                                                function applyInlineTextStyles(svg, fontSize, fontFamily) {
+                                                    console.log('Applying inline text styles...');
+
+                                                    // Find all text elements in the SVG
+                                                    const textElements = svg.querySelectorAll('text, tspan, textPath');
+
+                                                    textElements.forEach(textElement => {
+                                                        // Preserve existing positioning attributes
+                                                        const existingX = textElement.getAttribute('x');
+                                                        const existingY = textElement.getAttribute('y');
+                                                        const existingDx = textElement.getAttribute('dx');
+                                                        const existingDy = textElement.getAttribute('dy');
+                                                        const existingTextAnchor = textElement.getAttribute('text-anchor');
+                                                        const existingDominantBaseline = textElement.getAttribute('dominant-baseline');
+
+                                                        // Apply font styling as attributes (more reliable for export)
+                                                        textElement.setAttribute('font-family', fontFamily);
+                                                        textElement.setAttribute('font-size', fontSize);
+                                                        textElement.setAttribute('font-weight', 'normal');
+                                                        textElement.setAttribute('font-style', 'normal');
+
+                                                        // Preserve text positioning attributes
+                                                        if (existingTextAnchor) {
+                                                            textElement.setAttribute('text-anchor', existingTextAnchor);
+                                                        }
+                                                        if (existingDominantBaseline) {
+                                                            textElement.setAttribute('dominant-baseline', existingDominantBaseline);
+                                                        }
+
+                                                        // Ensure positioning is preserved
+                                                        if (existingX !== null) textElement.setAttribute('x', existingX);
+                                                        if (existingY !== null) textElement.setAttribute('y', existingY);
+                                                        if (existingDx !== null) textElement.setAttribute('dx', existingDx);
+                                                        if (existingDy !== null) textElement.setAttribute('dy', existingDy);
+
+                                                        // Apply inline styles for additional compatibility
+                                                        textElement.style.fontFamily = fontFamily;
+                                                        textElement.style.fontSize = fontSize + 'px';
+                                                        textElement.style.fontWeight = 'normal';
+                                                        textElement.style.fontStyle = 'normal';
+                                                    });
+
+                                                    console.log(`Applied inline styles to ${textElements.length} text elements`);
+                                                }
+
+                                                /**
+                                                 * Setup high-quality canvas rendering for crisp text and graphics
+                                                 * This addresses DPI scaling and text rendering quality issues
+                                                 */
+                                                function setupHighQualityCanvas(canvas, ctx, width, height) {
+                                                    console.log('Setting up high-quality canvas rendering...');
+
+                                                    // Get device pixel ratio for high-DPI displays
+                                                    const devicePixelRatio = window.devicePixelRatio || 1;
+
+                                                    // Set actual canvas size in memory (scaled for high-DPI)
+                                                    canvas.width = width * devicePixelRatio;
+                                                    canvas.height = height * devicePixelRatio;
+
+                                                    // Scale the canvas back down using CSS
+                                                    canvas.style.width = width + 'px';
+                                                    canvas.style.height = height + 'px';
+
+                                                    // Scale the drawing context so everything draws at the correct size
+                                                    ctx.scale(devicePixelRatio, devicePixelRatio);
+
+                                                    // Enable high-quality text rendering
+                                                    ctx.textRenderingOptimization = 'optimizeQuality';
+                                                    ctx.imageSmoothingEnabled = true;
+                                                    ctx.imageSmoothingQuality = 'high';
+
+                                                    // Set text rendering properties for crisp text
+                                                    if (ctx.textRenderingOptimization) {
+                                                        ctx.textRenderingOptimization = 'optimizeQuality';
+                                                    }
+
+                                                    console.log(`Canvas setup: ${width}x${height} (${canvas.width}x${canvas.height} actual, DPR: ${devicePixelRatio})`);
+                                                }
+
+                                                /**
+                                                 * Get accurate text bounds for better text measurement in exports
+                                                 * This provides more precise text positioning and sizing
+                                                 */
+                                                function getAccurateTextBounds(textElement) {
+                                                    try {
+                                                        // First try the standard getBBox method
+                                                        const bbox = textElement.getBBox();
+                                                        if (bbox && bbox.width > 0 && bbox.height > 0) {
+                                                            return bbox;
+                                                        }
+                                                    } catch (e) {
+                                                        // getBBox failed, use alternative measurement
+                                                    }
+
+                                                    // Alternative measurement using canvas text metrics
+                                                    try {
+                                                        const text = textElement.textContent || textElement.innerText || '';
+                                                        if (!text.trim()) return null;
+
+                                                        // Get font properties
+                                                        const fontSize = parseFloat(textElement.getAttribute('font-size') ||
+                                                            textElement.style.fontSize ||
+                                                            document.getElementById('fontSize')?.value || 14);
+                                                        const fontFamily = textElement.getAttribute('font-family') ||
+                                                            textElement.style.fontFamily ||
+                                                            'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
+
+                                                        // Create temporary canvas for text measurement
+                                                        const canvas = document.createElement('canvas');
+                                                        const ctx = canvas.getContext('2d');
+                                                        ctx.font = `${fontSize}px ${fontFamily}`;
+
+                                                        const metrics = ctx.measureText(text);
+                                                        const x = parseFloat(textElement.getAttribute('x') || 0);
+                                                        const y = parseFloat(textElement.getAttribute('y') || 0);
+
+                                                        return {
+                                                            x: x,
+                                                            y: y - fontSize * 0.8,
+                                                            width: metrics.width,
+                                                            height: fontSize * 1.2
+                                                        };
+                                                    } catch (e) {
+                                                        console.warn('Text measurement failed:', e);
+                                                        return null;
+                                                    }
+                                                }
+
+                                                /**
+                                                 * Ensure fonts are loaded before rendering to canvas
+                                                 * This prevents text rendering issues in exported images
+                                                 */
+                                                function ensureFontsLoaded() {
+                                                    return new Promise((resolve, reject) => {
+                                                        // Check if Font Loading API is available
+                                                        if ('fonts' in document) {
+                                                            // Wait for fonts to be ready
+                                                            document.fonts.ready.then(() => {
+                                                                console.log('Fonts loaded successfully');
+                                                                resolve();
+                                                            }).catch(error => {
+                                                                console.warn('Font loading API failed:', error);
+                                                                // Fallback to timeout
+                                                                setTimeout(resolve, 100);
+                                                            });
+                                                        } else {
+                                                            // Fallback for browsers without Font Loading API
+                                                            console.log('Font Loading API not available, using timeout fallback');
+                                                            setTimeout(resolve, 100);
+                                                        }
+                                                    });
+                                                }
 
         /**
          * Calculate the actual content bounds of an SVG element with comprehensive element detection
@@ -2487,19 +2717,26 @@
 
                         // Fallback for elements where getBBox fails
                         if (!bbox || bbox.width === 0 || bbox.height === 0) {
-                            // Handle specific element types
+                            // Handle specific element types with improved text measurement
                             if (element.tagName === 'text' || element.tagName === 'tspan') {
-                                // For text elements, try to get text metrics
-                                const textLength = element.getComputedTextLength ? element.getComputedTextLength() : 0;
-                                if (textLength > 0) {
-                                    const x = parseFloat(element.getAttribute('x') || 0);
-                                    const y = parseFloat(element.getAttribute('y') || 0);
-                                    bbox = {
-                                        x: x,
-                                        y: y - 12, // Approximate text height
-                                        width: textLength,
-                                        height: 16 // Approximate text height
-                                    };
+                                // For text elements, get accurate text metrics
+                                bbox = getAccurateTextBounds(element);
+                                if (!bbox) {
+                                    // Fallback to computed text length
+                                    const textLength = element.getComputedTextLength ? element.getComputedTextLength() : 0;
+                                    if (textLength > 0) {
+                                        const x = parseFloat(element.getAttribute('x') || 0);
+                                        const y = parseFloat(element.getAttribute('y') || 0);
+                                        const fontSize = parseFloat(element.getAttribute('font-size') ||
+                                            element.style.fontSize ||
+                                            document.getElementById('fontSize')?.value || 14);
+                                        bbox = {
+                                            x: x,
+                                            y: y - fontSize * 0.8, // More accurate text height estimation
+                                            width: textLength,
+                                            height: fontSize * 1.2 // More accurate text height
+                                        };
+                                    }
                                 }
                             } else if (element.tagName === 'g') {
                                 // For groups, try to get the bounding box of children
@@ -2868,16 +3105,11 @@
 
                 // XML namespaces are already set by getCleanSVGForExport()
 
-                // Add styles for crisp rendering
-                const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-                styleElement.textContent = `
-                    * {
-                        shape-rendering: geometricPrecision;
-                        text-rendering: geometricPrecision;
-                        image-rendering: optimizeQuality;
-                    }
-                `;
-                svgClone.insertBefore(styleElement, svgClone.firstChild);
+                // Enhanced canvas rendering setup for high-quality text
+                setupHighQualityCanvas(canvas, ctx, finalWidth, finalHeight);
+
+                // The SVG already has comprehensive text rendering styles embedded
+                // from the getCleanSVGForExport() function, so no additional styling needed here
 
                 // Serialize SVG with proper encoding
                 const svgString = new XMLSerializer().serializeToString(svgClone);
@@ -2887,11 +3119,13 @@
                 const img = new Image();
                 img.onload = function () {
                     try {
-                        // Draw at full resolution for maximum quality
-                        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                        // Ensure fonts are loaded before drawing
+                        ensureFontsLoaded().then(() => {
+                            // Draw at full resolution for maximum quality
+                            ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
 
-                        // Convert to PNG with maximum quality
-                        canvas.toBlob(function (blob) {
+                            // Convert to PNG with maximum quality
+                            canvas.toBlob(function (blob) {
                             showLoading(false);
 
                             if (blob) {
@@ -2914,6 +3148,30 @@
                                 showError('Failed to create PNG file');
                             }
                         }, 'image/png', 1.0); // Maximum quality
+
+                        }).catch(fontError => {
+                            showLoading(false);
+                            console.warn('Font loading failed, proceeding anyway:', fontError);
+                            // Fallback: draw without waiting for fonts
+                            ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                            canvas.toBlob(function (blob) {
+                                showLoading(false);
+                                if (blob) {
+                                    const link = document.createElement('a');
+                                    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                                    const fileSize = (blob.size / (1024 * 1024)).toFixed(2);
+                                    link.download = `mermaid-diagram-${finalWidth}x${finalHeight}-${timestamp}.png`;
+                                    link.href = URL.createObjectURL(blob);
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    URL.revokeObjectURL(link.href);
+                                    showSuccess(`Complete diagram exported as PNG! (${finalWidth}×${finalHeight}, ${fileSize}MB) 🖼️`);
+                                } else {
+                                    showError('Failed to create PNG file');
+                                }
+                            }, 'image/png', 1.0);
+                        });
 
                     } catch (drawError) {
                         showLoading(false);
