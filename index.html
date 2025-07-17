@@ -1048,6 +1048,12 @@
                         </select>
                     </div>
                     <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoFontSize" checked>
+                            Auto-adjust font to prevent word wrapping
+                        </label>
+                    </div>
+                    <div class="setting-item">
                         <label>Auto-fit Content:</label>
                         <select id="autoFitContent">
                             <option value="true" selected>Yes</option>
@@ -1440,7 +1446,16 @@
                     },
                     sequence: {
                         useMaxWidth: true,
-                        wrap: true
+                        wrap: false,  // Disable text wrapping to prevent awkward breaks
+                        wrapPadding: 10,
+                        actorMargin: 60,  // Increase margin to accommodate longer names
+                        boxMargin: 10,
+                        boxTextMargin: 5,
+                        noteMargin: 10,
+                        messageMargin: 35,
+                        actorFontSize: 12,  // Smaller font for participant names
+                        messageFontSize: 11,  // Smaller font for messages
+                        noteFontSize: 11     // Smaller font for notes
                     },
                     gantt: {
                         useMaxWidth: true
@@ -2440,7 +2455,8 @@
                                                     console.log('Embedding text rendering styles for export...');
 
                                                     // Get current style settings from the UI or defaults
-                                                    const fontSize = document.getElementById('fontSize')?.value || '14';
+                                                    const baseFontSize = parseInt(document.getElementById('fontSize')?.value || '14');
+                                                    const fontSize = calculateOptimalFontSize(svg, baseFontSize);
                                                     const fontFamily = 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
 
                                                     // Create comprehensive style element for text rendering
@@ -2477,6 +2493,52 @@
                     box-sizing: border-box !important;
                     margin: 0 !important;
                     padding: 0 !important;
+                }
+
+                /* Specific styling for sequence diagram text elements */
+                .actor-label text, .actor-label tspan,
+                .messageText text, .messageText tspan,
+                .noteText text, .noteText tspan,
+                .loopText text, .loopText tspan {
+                    font-family: ${fontFamily} !important;
+                    font-size: ${fontSize}px !important;
+                    font-weight: normal !important;
+                    font-style: normal !important;
+                }
+
+                /* Ensure wrapped text positioning is preserved */
+                g.actor-label tspan[dy],
+                g.messageText tspan[dy],
+                g.noteText tspan[dy] {
+                    dy: inherit !important;
+                }
+
+                /* Fix sequence diagram participant text alignment */
+                .actor text, .actor-label text {
+                    text-anchor: middle !important;
+                    dominant-baseline: central !important;
+                }
+
+                /* Ensure proper spacing for wrapped participant names */
+                .actor tspan {
+                    text-anchor: middle !important;
+                    dx: 0 !important;
+                }
+
+                /* Fix message text positioning */
+                .messageText text, .messageText tspan {
+                    text-anchor: middle !important;
+                    dominant-baseline: central !important;
+                }
+
+                /* Ensure background is solid white for export */
+                svg {
+                    background-color: white !important;
+                }
+
+                /* Fix any transparent backgrounds in sequence diagrams */
+                .sequenceDiagram, .sequence {
+                    background-color: white !important;
                 }
 
                 /* Specific Mermaid text element classes */
@@ -2533,8 +2595,56 @@
                                                     console.log('Found SVG text elements:', svgTextElements.length);
                                                     console.log('Found HTML text elements in foreignObject:', htmlTextElements.length);
 
+                                                    // Special handling for sequence diagrams with wrapped text
+                                                    const wrappedTextGroups = svg.querySelectorAll('g.actor-label, g.messageText, g.noteText');
+                                                    console.log('Found wrapped text groups:', wrappedTextGroups.length);
+
                                                     const allTextElements = [...svgTextElements, ...htmlTextElements];
                                                     console.log('Total text elements to process:', allTextElements.length);
+
+                                                    // First, handle wrapped text groups in sequence diagrams
+                                                    wrappedTextGroups.forEach(group => {
+                                                        const textElements = group.querySelectorAll('text, tspan');
+                                                        textElements.forEach(textElement => {
+                                                            // Apply consistent styling to wrapped text elements
+                                                            textElement.style.fontFamily = fontFamily;
+                                                            textElement.style.fontSize = fontSize + 'px';
+                                                            textElement.setAttribute('font-family', fontFamily);
+                                                            textElement.setAttribute('font-size', fontSize);
+
+                                                            // Preserve text positioning for wrapped elements
+                                                            const existingX = textElement.getAttribute('x');
+                                                            const existingY = textElement.getAttribute('y');
+                                                            const existingDy = textElement.getAttribute('dy');
+                                                            const existingTextAnchor = textElement.getAttribute('text-anchor');
+                                                            const existingDominantBaseline = textElement.getAttribute('dominant-baseline');
+
+                                                            if (existingX !== null) textElement.setAttribute('x', existingX);
+                                                            if (existingY !== null) textElement.setAttribute('y', existingY);
+                                                            if (existingDy !== null) textElement.setAttribute('dy', existingDy);
+                                                            if (existingTextAnchor) textElement.setAttribute('text-anchor', existingTextAnchor);
+                                                            if (existingDominantBaseline) textElement.setAttribute('dominant-baseline', existingDominantBaseline);
+                                                        });
+                                                    });
+
+                                                    // Handle sequence diagram specific text elements that might not be in groups
+                                                    const sequenceTextElements = svg.querySelectorAll('text[text-anchor="middle"], text[text-anchor="start"], text[text-anchor="end"]');
+                                                    sequenceTextElements.forEach(textElement => {
+                                                        // Ensure text anchor is preserved for proper alignment
+                                                        const anchor = textElement.getAttribute('text-anchor');
+                                                        if (anchor) {
+                                                            textElement.style.textAnchor = anchor;
+                                                            textElement.setAttribute('text-anchor', anchor);
+                                                        }
+
+                                                        // Fix common sequence diagram text positioning issues
+                                                        const parentGroup = textElement.closest('g');
+                                                        if (parentGroup && parentGroup.classList.contains('actor')) {
+                                                            // This is participant text - ensure it's centered
+                                                            textElement.setAttribute('text-anchor', 'middle');
+                                                            textElement.style.textAnchor = 'middle';
+                                                        }
+                                                    });
 
                                                     allTextElements.forEach(textElement => {
                                                         const isSVGElement = ['text', 'tspan', 'textPath'].includes(textElement.tagName.toLowerCase());
@@ -2597,6 +2707,112 @@
                                                 }
 
                                                 /**
+                                                 * Calculate optimal font size to prevent word wrapping while maintaining readability
+                                                 * Minimum font size is 10px to ensure human readability
+                                                 */
+                                                function calculateOptimalFontSize(svg, baseFontSize) {
+                                                    const autoFontSize = document.getElementById('autoFontSize')?.checked;
+                                                    if (!autoFontSize) return baseFontSize;
+
+                                                    const minFontSize = 10; // Minimum readable font size
+                                                    const maxFontSize = baseFontSize;
+
+                                                    // Find all text elements that might be wrapped
+                                                    const textElements = svg.querySelectorAll('text, tspan');
+                                                    let hasWrappedText = false;
+
+                                                    // Check if any text is wrapped (contains hyphens at line breaks)
+                                                    textElements.forEach(element => {
+                                                        const text = element.textContent || '';
+                                                        if (text.includes('-\n') || text.endsWith('-')) {
+                                                            hasWrappedText = true;
+                                                        }
+                                                    });
+
+                                                    // Check for sequence diagram participant names that are split
+                                                    const participantGroups = svg.querySelectorAll('g.actor, g[class*="actor"]');
+                                                    participantGroups.forEach(group => {
+                                                        const textElements = group.querySelectorAll('text, tspan');
+                                                        if (textElements.length > 1) {
+                                                            // Multiple text elements suggest wrapping
+                                                            hasWrappedText = true;
+                                                        }
+                                                    });
+
+                                                    // More sophisticated check: look for text elements with dy attributes (line breaks)
+                                                    const wrappedElements = svg.querySelectorAll('tspan[dy]');
+                                                    if (wrappedElements.length > 0) {
+                                                        hasWrappedText = true;
+                                                    }
+
+                                                    // Check for common sequence diagram wrapping patterns
+                                                    textElements.forEach(element => {
+                                                        const text = element.textContent || '';
+
+                                                        // Look for text that ends with hyphens (clear sign of wrapping)
+                                                        if (text.endsWith('-') || text.includes('-\n')) {
+                                                            hasWrappedText = true;
+                                                        }
+
+                                                        // Look for service names that are commonly wrapped
+                                                        if (text.includes('Service') || text.includes('Gateway') || text.includes('Management')) {
+                                                            const parent = element.closest('g');
+                                                            if (parent) {
+                                                                const siblingTexts = parent.querySelectorAll('text, tspan');
+                                                                if (siblingTexts.length > 1) {
+                                                                    hasWrappedText = true;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Check for specific patterns that indicate wrapping
+                                                        const wrappingPatterns = [
+                                                            'Se-', 'rvice', 'Servic-', 'e',
+                                                            'Manage-', 'ment', 'Management-',
+                                                            'Gateway-', 'Servic-',
+                                                            'orderR-', 'ef)', 'timeout(orderR-'
+                                                        ];
+
+                                                        wrappingPatterns.forEach(pattern => {
+                                                            if (text.includes(pattern)) {
+                                                                hasWrappedText = true;
+                                                            }
+                                                        });
+                                                    });
+
+                                                    if (!hasWrappedText) return baseFontSize;
+
+                                                    // More aggressive reduction for sequence diagrams with long participant names
+                                                    // Start with 75% and go down to 65% if needed
+                                                    let reductionFactor = 0.75;
+
+                                                    // Check for very long participant names that need more aggressive reduction
+                                                    const longParticipantNames = svg.querySelectorAll('text, tspan');
+                                                    let hasVeryLongNames = false;
+
+                                                    longParticipantNames.forEach(element => {
+                                                        const text = element.textContent || '';
+                                                        // Check for very long service names or method names
+                                                        if (text.length > 20 ||
+                                                            text.includes('OrderManagement') ||
+                                                            text.includes('EZFleetGateway') ||
+                                                            text.includes('scheduleRiderSearchTimeout') ||
+                                                            text.includes('incomingOrderScheduleTimeout')) {
+                                                            hasVeryLongNames = true;
+                                                        }
+                                                    });
+
+                                                    if (hasVeryLongNames) {
+                                                        reductionFactor = 0.65; // More aggressive for very long names
+                                                    }
+
+                                                    let optimalSize = Math.max(minFontSize, baseFontSize * reductionFactor);
+
+                                                    console.log(`Auto font size: Reduced from ${baseFontSize}px to ${optimalSize}px to prevent wrapping (reduction: ${Math.round((1-reductionFactor)*100)}%)`);
+                                                    return optimalSize;
+                                                }
+
+                                                /**
                                                  * Setup high-quality canvas rendering for crisp text and graphics
                                                  * This addresses DPI scaling and text rendering quality issues
                                                  */
@@ -2616,6 +2832,14 @@
 
                                                     // Scale the drawing context so everything draws at the correct size
                                                     ctx.scale(devicePixelRatio, devicePixelRatio);
+
+                                                    // Fill canvas with background based on user setting
+                                                    const exportBackground = document.getElementById('exportBackground')?.value || 'white';
+                                                    if (exportBackground === 'white') {
+                                                        ctx.fillStyle = 'white';
+                                                        ctx.fillRect(0, 0, width, height);
+                                                    }
+                                                    // If transparent, don't fill background
 
                                                     // Enable high-quality text rendering
                                                     ctx.textRenderingOptimization = 'optimizeQuality';
