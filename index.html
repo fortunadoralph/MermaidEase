@@ -2967,8 +2967,8 @@
                                                 }
 
         /**
-         * Calculate the actual content bounds of an SVG element with comprehensive element detection
-         * This ensures we capture ALL visible content including text, paths, shapes, and Mermaid-specific elements
+         * Calculate the actual content bounds of an SVG element with improved sequence diagram detection
+         * This ensures we capture ALL visible content while filtering out empty space and invisible elements
          */
         function calculateSVGContentBounds(svg) {
             try {
@@ -2991,23 +2991,49 @@
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
                 let hasValidBounds = false;
 
-                // Get all elements that contribute to visual content
+                // Enhanced content selectors with better filtering for sequence diagrams
                 const contentSelectors = [
-                    'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'path',
-                    'text', 'tspan', 'textPath', 'g[class*="node"]', 'g[class*="edge"]',
-                    'g[class*="label"]', 'marker', 'use', 'image', 'foreignObject'
+                    'rect:not([width="0"]):not([height="0"])',
+                    'circle:not([r="0"])',
+                    'ellipse:not([rx="0"]):not([ry="0"])',
+                    'line:not([x1="0"][y1="0"][x2="0"][y2="0"])',
+                    'polyline', 'polygon', 'path:not([d=""])',
+                    'text:not(:empty)', 'tspan:not(:empty)', 'textPath:not(:empty)',
+                    'g[class*="actor"]', 'g[class*="note"]', 'g[class*="activation"]',
+                    'g[class*="message"]', 'g[class*="loop"]', 'g[class*="alt"]',
+                    'marker', 'use', 'image', 'foreignObject'
                 ];
 
                 const allContentElements = tempSvg.querySelectorAll(contentSelectors.join(','));
                 console.log(`Found ${allContentElements.length} content elements to analyze`);
 
-                // Analyze each content element
+                // Debug: Log the first few elements to understand what we're analyzing
+                let debugCount = 0;
+                const maxDebugElements = 10;
+
+                // Analyze each content element with improved filtering
                 for (const element of allContentElements) {
                     try {
-                        // Skip invisible or non-contributing elements
+                        // Enhanced visibility checks
+                        const computedStyle = window.getComputedStyle(element);
                         if (element.style.display === 'none' ||
                             element.style.visibility === 'hidden' ||
-                            element.getAttribute('opacity') === '0') {
+                            element.getAttribute('opacity') === '0' ||
+                            computedStyle.display === 'none' ||
+                            computedStyle.visibility === 'hidden' ||
+                            computedStyle.opacity === '0') {
+                            continue;
+                        }
+
+                        // Skip elements with zero dimensions
+                        if (element.tagName === 'rect') {
+                            const width = parseFloat(element.getAttribute('width') || 0);
+                            const height = parseFloat(element.getAttribute('height') || 0);
+                            if (width <= 0 || height <= 0) continue;
+                        }
+
+                        // Skip empty text elements
+                        if (['text', 'tspan'].includes(element.tagName) && !element.textContent.trim()) {
                             continue;
                         }
 
@@ -3017,6 +3043,10 @@
                         if (typeof element.getBBox === 'function') {
                             try {
                                 bbox = element.getBBox();
+                                // Validate bbox has meaningful dimensions
+                                if (bbox && (bbox.width <= 0 || bbox.height <= 0)) {
+                                    bbox = null;
+                                }
                             } catch (e) {
                                 // getBBox can fail on some elements, continue to fallback
                             }
@@ -3101,12 +3131,38 @@
 
                         // Update overall bounds if we got a valid bbox
                         if (bbox && bbox.width > 0 && bbox.height > 0 &&
-                            isFinite(bbox.x) && isFinite(bbox.y)) {
-                            minX = Math.min(minX, bbox.x);
-                            minY = Math.min(minY, bbox.y);
-                            maxX = Math.max(maxX, bbox.x + bbox.width);
-                            maxY = Math.max(maxY, bbox.y + bbox.height);
-                            hasValidBounds = true;
+                            isFinite(bbox.x) && isFinite(bbox.y) && isFinite(bbox.width) && isFinite(bbox.height)) {
+
+                            // Additional validation: skip elements that are way outside reasonable bounds
+                            // This helps filter out incorrectly positioned elements
+                            const isReasonableBounds = bbox.x > -10000 && bbox.y > -10000 &&
+                                bbox.x < 50000 && bbox.y < 50000 &&
+                                bbox.width < 50000 && bbox.height < 50000;
+
+                            if (isReasonableBounds) {
+                                minX = Math.min(minX, bbox.x);
+                                minY = Math.min(minY, bbox.y);
+                                maxX = Math.max(maxX, bbox.x + bbox.width);
+                                maxY = Math.max(maxY, bbox.y + bbox.height);
+                                hasValidBounds = true;
+
+                                // Debug logging for the first few elements and problematic bounds
+                                if (debugCount < maxDebugElements) {
+                                    console.log(`Element ${debugCount + 1}:`, element.tagName, element.className || 'no-class', bbox);
+                                    debugCount++;
+                                }
+
+                                if (bbox.width > 5000 || bbox.height > 5000) {
+                                    console.warn('Large element detected:', element.tagName, element.className, bbox);
+                                }
+
+                                // Debug: Check if this element is contributing to the origin issue
+                                if (bbox.x === 0 && bbox.y === 0) {
+                                    console.warn('Element at origin (0,0):', element.tagName, element.className, bbox, element);
+                                }
+                            } else {
+                                console.warn('Skipping element with unreasonable bounds:', element.tagName, element.className, bbox);
+                            }
                         }
                     } catch (e) {
                         console.warn('Error analyzing element:', element.tagName, e);
@@ -3125,14 +3181,35 @@
                         width: maxX - minX,
                         height: maxY - minY
                     };
-                    console.log('Calculated content bounds:', bounds);
-                    return bounds;
+
+                    // Ensure minimum reasonable dimensions
+                    if (bounds.width > 0 && bounds.height > 0 && bounds.width < 50000 && bounds.height < 50000) {
+                        console.log('Calculated content bounds:', bounds);
+                        return bounds;
+                    } else {
+                        console.warn('Calculated bounds are unreasonable:', bounds);
+                    }
                 }
 
                 // Enhanced fallback strategies
                 console.log('Primary bounds calculation failed, trying fallbacks...');
 
-                // Fallback 1: Try root SVG getBBox
+                // Fallback 1: Try a more targeted approach for sequence diagrams
+                try {
+                    // Look for the main sequence diagram group
+                    const sequenceGroup = tempSvg.querySelector('g[id*="sequence"], g[class*="sequence"], g[class*="diagram"]');
+                    if (sequenceGroup) {
+                        const seqBbox = sequenceGroup.getBBox();
+                        if (seqBbox && seqBbox.width > 0 && seqBbox.height > 0) {
+                            console.log('Using sequence diagram group bounds:', seqBbox);
+                            return seqBbox;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Sequence group bounds failed:', e);
+                }
+
+                // Fallback 2: Try root SVG getBBox
                 try {
                     const rootBbox = svg.getBBox();
                     if (rootBbox && rootBbox.width > 0 && rootBbox.height > 0) {
@@ -3143,7 +3220,53 @@
                     console.warn('Root SVG getBBox failed:', e);
                 }
 
-                // Fallback 2: Use viewBox if available
+                // Fallback 3: Try a smarter bounds calculation that ignores elements at origin
+                try {
+                    let smartMinX = Infinity, smartMinY = Infinity, smartMaxX = -Infinity, smartMaxY = -Infinity;
+                    let smartHasValidBounds = false;
+
+                    // Only consider elements that are NOT at the origin and have reasonable positions
+                    for (const element of allContentElements) {
+                        try {
+                            if (typeof element.getBBox === 'function') {
+                                const bbox = element.getBBox();
+                                if (bbox && bbox.width > 0 && bbox.height > 0) {
+                                    // Skip elements that are exactly at origin - they're likely background/invisible elements
+                                    if (bbox.x === 0 && bbox.y === 0 && (bbox.width > 2000 || bbox.height > 2000)) {
+                                        console.log('Skipping large element at origin:', element.tagName, bbox);
+                                        continue;
+                                    }
+
+                                    // Only include elements that seem to be actual content
+                                    if (bbox.x > 10 || bbox.y > 10 || (bbox.width < 2000 && bbox.height < 2000)) {
+                                        smartMinX = Math.min(smartMinX, bbox.x);
+                                        smartMinY = Math.min(smartMinY, bbox.y);
+                                        smartMaxX = Math.max(smartMaxX, bbox.x + bbox.width);
+                                        smartMaxY = Math.max(smartMaxY, bbox.y + bbox.height);
+                                        smartHasValidBounds = true;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+
+                    if (smartHasValidBounds && smartMinX !== Infinity) {
+                        const smartBounds = {
+                            x: smartMinX,
+                            y: smartMinY,
+                            width: smartMaxX - smartMinX,
+                            height: smartMaxY - smartMinY
+                        };
+                        console.log('Using smart bounds (excluding origin elements):', smartBounds);
+                        return smartBounds;
+                    }
+                } catch (e) {
+                    console.warn('Smart bounds calculation failed:', e);
+                }
+
+                // Fallback 4: Use viewBox if available
                 if (svg.viewBox && svg.viewBox.baseVal) {
                     const vb = svg.viewBox.baseVal;
                     if (vb.width > 0 && vb.height > 0) {
