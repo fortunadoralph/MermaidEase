@@ -849,7 +849,7 @@
                     </button>
 
                     <div class="dropdown">
-                        <button class="btn secondary" onclick="toggleDropdown('examples')">
+                        <button class="btn secondary" onclick="toggleDropdown(event, 'examples')">
                             📚 Examples
                         </button>
                         <div class="dropdown-content" id="examplesDropdown">
@@ -867,7 +867,7 @@
                     </button>
 
                     <div class="dropdown">
-                        <button class="btn success" onclick="toggleDropdown('export')">
+                        <button class="btn success" onclick="toggleDropdown(event, 'export')">
                             💾 Export
                         </button>
                         <div class="dropdown-content" id="exportDropdown">
@@ -1535,12 +1535,10 @@
 
         // ===== AUTO-SAVE & STORAGE =====
         function autoSave() {
-            const code = document.getElementById('code').value;
-            if (code.trim()) {
-                localStorage.setItem('mermaid_code', code);
-                updateAutoSaveIndicator('saved');
-                setTimeout(() => updateAutoSaveIndicator(''), 2000);
-            }
+            saveToStorage();
+            updateAutoSaveIndicator('saved');
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => updateAutoSaveIndicator(''), 2000);
         }
 
         function updateAutoSaveIndicator(state) {
@@ -1564,7 +1562,7 @@
         function loadFromStorage() {
             const savedCode = localStorage.getItem('mermaid_code');
 
-            if (savedCode) {
+            if (savedCode !== null) {
                 document.getElementById('code').value = savedCode;
             }
         }
@@ -1923,10 +1921,9 @@
 
         function autoSave() {
             saveToStorage();
+            updateAutoSaveIndicator('saved');
             clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                showSuccess('Auto-saved! 💾');
-            }, 500);
+            autoSaveTimer = setTimeout(() => updateAutoSaveIndicator(''), 2000);
         }
 
         function closeDropdowns() {
@@ -2107,9 +2104,11 @@
             }
         }
 
-        function toggleDropdown(id) {
+        function toggleDropdown(clickEvent, id) {
             // Prevent event bubbling
-            event.stopPropagation();
+            if (clickEvent) {
+                clickEvent.stopPropagation();
+            }
 
             const dropdown = document.getElementById(id + 'Dropdown');
 
@@ -2140,9 +2139,11 @@
         }
 
         // ===== UI CONTROLS =====
-        function toggleDropdown(id) {
+        function toggleDropdown(clickEvent, id) {
             // Prevent event bubbling
-            event.stopPropagation();
+            if (clickEvent) {
+                clickEvent.stopPropagation();
+            }
 
             const dropdown = document.getElementById(id + 'Dropdown');
 
